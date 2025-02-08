@@ -43,8 +43,6 @@ class Decoration:
         self.screen_w = screen_w
         self.screen_h = screen_h
 
-        pygame.display.set_caption("Namkhing's Cake - Select Your Cake Base")
-
         # โหลดภาพพื้นหลัง
         self.background = pygame.image.load("Elements/shop_background.png")
         self.background = pygame.transform.smoothscale(self.background, (self.screen_w, self.screen_h))
