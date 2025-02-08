@@ -16,7 +16,7 @@ class Button():
 
         return self
     
-    def IsMouseOver(self):
+    def is_mouse_over(self):
         action = False
         # get mouse position
         pos = pygame.mouse.get_pos()
