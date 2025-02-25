@@ -206,7 +206,7 @@ def update_layout():
     shelf_offsets = [
         (24, 18), (154, 18), (284, 18),
         (24, 159), (154, 159), (284, 159),
-        (24, 334), (154, 334), (284, 334)
+        (24, 304), (154, 304), (284, 304)
     ]
     for off_x, off_y in shelf_offsets:
         shelf_positions.append((
