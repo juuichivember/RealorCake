@@ -1,142 +1,287 @@
 import pygame
 import os
 
-# กำหนดค่าพื้นฐาน
+# เริ่มต้น Pygame และกำหนดขนาดหน้าจอ
 pygame.init()
-WIDTH, HEIGHT = 1920, 1080  # ขนาดหน้าจอแบบ Full HD
+WIDTH, HEIGHT = 1920, 1080
 screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
-pygame.display.set_caption("RealOrCake - Select Your Cake Base")
+pygame.display.set_caption("RealOrCake - Decoration State with Sub-States")
 
-# โหลดภาพพื้นหลัง
-background = pygame.image.load("Elements/shop_background.png")
-background = pygame.transform.scale(background, (WIDTH, HEIGHT))
-
-# โหลดภาพชั้นวางเค้ก
-shelve = pygame.image.load("Elements/shelve.png")
-shelve = pygame.transform.scale(shelve, (762, 801))  # ปรับขนาดชั้นวาง
-shelve_x, shelve_y = (1121, -292)  # เริ่มต้นอยู่นอกจอด้านบน
-shelve_target_y = 108  # จุดที่ชั้นวางต้องหยุด
-shelve_speed = 15  # ความเร็วในการเลื่อนลงมา
-
-# โหลดภาพโต๊ะ
-table = pygame.image.load("Elements/table.png")
-table = pygame.transform.scale(table, (1303, 814))  # ปรับขนาดโต๊ะ
-table_x, table_y = (-533, 796)  # เริ่มต้นอยู่นอกจอด้านซ้าย
-
-# โหลดปุ่มรีเซ็ตและปุ่มเสร็จสิ้น
-reset_button = pygame.image.load("Elements/reset_button.png")
-reset_button = pygame.transform.scale(reset_button, (180, 60))
-reset_button_pos = (1240, 950)
-
-finish_button = pygame.image.load("Elements/finish_button.png")
-finish_button = pygame.transform.scale(finish_button, (180, 60))
-finish_button_pos = (1540, 950)
-
-# กำหนดสี
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-
-# ฟังก์ชันโหลดรูปภาพจากโฟลเดอร์
-def load_cake_image(cake_type):
-    path = f"Elements/layer7_base_1/{cake_type}.png"
+# ----------------------------------------------------------------------------
+# 1) ฟังก์ชันโหลดภาพ
+# ----------------------------------------------------------------------------
+def load_image(path, scale=None):
     if os.path.exists(path):
-        return pygame.image.load(path)
-    return None
+        try:
+            image = pygame.image.load(path).convert_alpha()
+            if scale:
+                image = pygame.transform.scale(image, scale)
+            return image
+        except Exception as e:
+            print(f"Error loading image {path}: {e}")
+    else:
+        print(f"File not found: {path}")
+    # คืน Surface เปล่า ๆ ถ้าโหลดไม่ได้ (ป้องกัน error)
+    return pygame.Surface((1,1), pygame.SRCALPHA)
 
-# รายการชนิดเค้ก
-cake_types = [
-    "vanilla", "chocolate", "strawberry",
-    "charcole", "blueberry", "grape",
-    "carrot", "milk", "mint"
+# ----------------------------------------------------------------------------
+# 2) โหลดภาพพื้นหลัง / ปุ่ม / พาเลตต์สี ฯลฯ (โค้ดเดิม)
+# ----------------------------------------------------------------------------
+background = load_image("Elements/shop_background.png", (WIDTH, HEIGHT))
+
+shelve = load_image("Elements/shelve.png", (775, 806))
+shelve_pos = (1083, 138)
+
+reset_button = load_image("Elements/reset_button.png", (212, 124))
+reset_rect = reset_button.get_rect(topleft=(1240, 940)) if reset_button else None
+
+show_button = load_image("Elements/show_button.png", (212, 124))
+show_rect = show_button.get_rect(topleft=(1540, 940)) if show_button else None
+
+back_button = load_image("Elements/back_button.png", (222, 122))
+back_rect = back_button.get_rect(topleft=(50, 50)) if back_button else None
+
+palette_bg = load_image("Elements/Color/painttray.png", (150, 390))
+palette_pos = (930, 150)
+
+# ----------------------------------------------------------------------------
+# 3) จัดการ "สี" (color) ที่มีในพาเลตต์ (โค้ดเดิม)
+# ----------------------------------------------------------------------------
+color_names = [
+    "none", "grape", "bluberry", "mint", "vanilla", "milk",
+    "carrot", "redvelvet", "strawberry", "charcole", "chocolate", "coffee"
 ]
 
-# โหลดภาพเค้กจากโฟลเดอร์
-cake_options = {cake: load_cake_image(cake) for cake in cake_types}
+color_icons = {}
+for color in color_names:
+    img = load_image(f"Elements/Color/{color}.png", (50, 50))
+    if img:
+        color_icons[color] = img
 
-# ตำแหน่งของเค้ก
-final_positions = {
-    "vanilla": (1155, 209), "chocolate": (1377, 209), "strawberry": (1595, 209),
-    "charcole": (1155, 440), "blueberry": (1377, 440), "grape": (1595, 440),
-    "carrot": (1155, 666), "milk": (1377, 666), "mint": (1595, 666)
+# คำนวณตำแหน่งของไอคอนสีในพาเลตต์ (2 คอลัมน์)
+color_positions = []
+for i, _ in enumerate(color_names):
+    col = i % 2
+    row = i // 2
+    x_pos = palette_pos[0] + 20 + (col * 60)
+    y_pos = palette_pos[1] + 20 + (row * 60)
+    color_positions.append((x_pos, y_pos))
+
+# ----------------------------------------------------------------------------
+# 4) สร้าง "sub-state" และข้อมูลตัวเลือก (type) ของแต่ละ sub-state
+# ----------------------------------------------------------------------------
+states = ["base", "behindcream", "lowercream", "middlecream", "topcream", "topping"]
+
+state_options = {
+    "base":        ["layered", "plain"],
+    "behindcream": ["feather", "wave"],
+    "lowercream":  ["feather", "wave"],
+    "middlecream": ["ribbon",  "ruffle"],
+    "topcream":    ["feather", "wave"],
+    "topping":     ["bow", "crown", "floweredge", "flowertop", "pearl", "strawberry_3", "strawberry_4"]
 }
 
-for key in cake_options:
-    if cake_options[key]:  # ตรวจสอบว่ารูปโหลดสำเร็จ
-        cake_options[key] = pygame.transform.scale(cake_options[key], (260, 260))
+# เก็บการเลือก (type และ color) ของผู้ใช้แยกตาม sub-state
+selected_type = {s: None for s in states}
+selected_color = {s: None for s in states}
 
-# ฐานเค้กที่ถูกเลือก
-selected_cake = None
+# โหมด (sub-state) ปัจจุบัน
+current_mode = "base"
 
-# ฟอนต์
+# ----------------------------------------------------------------------------
+# 5) โหลดไอคอนปุ่มด้านบนสำหรับเปลี่ยน sub-state
+#    (ไฟล์ตัวอย่าง: 1Base_button.png, 2Topcream_button.png, ...)
+# ----------------------------------------------------------------------------
+mode_icons = {}
+icon_positions = {}
+start_x = 1100  # ตำแหน่ง x เริ่มต้นของไอคอน (ปรับตามดีไซน์)
+gap_x = 125    # ระยะห่างระหว่างปุ่ม
+
+for i, st in enumerate(states):
+    # ตัวอย่างไฟล์: f"{st}_button.png" เช่น "base_button.png"
+    icon_path = f"Elements/{st}_button.png"
+    icon_img = load_image(icon_path, (110, 110))  # ปรับขนาดตามต้องการ
+    mode_icons[st] = icon_img
+    icon_positions[st] = (start_x + i*gap_x, 25)
+
+# ----------------------------------------------------------------------------
+# 6) ตำแหน่งของชั้นวาง (ตำแหน่งที่จะวางภาพตัวเลือก type)
+# ----------------------------------------------------------------------------
+shelf_positions = [
+    (1122, 160), (1339, 160), (1556, 160),
+    (1122, 394), (1339, 394), (1556, 394),
+    (1122, 636), (1339, 636), (1556, 636)
+]
+
+# ----------------------------------------------------------------------------
+# 7) ฟังก์ชันสำหรับโหลด "ภาพเค้กจริง" ที่ผู้ใช้เลือก
+#    path = "Elements/{state}_{cake_type}/{state}_{cake_type}_{color}.png"
+#
+#   ปรับปรุง: เมื่อมีการเลือก type แล้วแต่ยังไม่เลือกสี
+#   ให้ใช้สีเริ่มต้น "grape" แทน
+# ----------------------------------------------------------------------------
+def load_cake_part(state_name, cake_type, color):
+    if not cake_type:
+        return None  # หากยังไม่ได้เลือก type ไม่ต้องโหลดอะไร
+    if not color:
+        color = "grape"  # ใช้สี default เป็น "grape" หากยังไม่ถูกเลือก
+    path = f"Elements/{state_name}_{cake_type}/{state_name}_{cake_type}_{color}.png"
+    if os.path.exists(path):
+        try:
+            return pygame.image.load(path).convert_alpha()
+        except Exception as e:
+            print(f"Error loading cake part {path}: {e}")
+    else:
+        print(f"File not found: {path}")
+    return None
+
+# ----------------------------------------------------------------------------
+# 8) ตัวแปรและฟอนต์อื่น ๆ
+# ----------------------------------------------------------------------------
+selected_color_global = None  # เก็บสีที่ผู้ใช้คลิกล่าสุด (หรือจะย้ายไปใช้ per-state ก็ได้)
+show_cakes = True
 font = pygame.font.Font(None, 50)
 
-# ตัวแปรควบคุมการแสดงเค้ก
-show_cakes = False
-
-# วนลูปเกม
 running = True
-while running:
-    screen.blit(background, (0, 0))  # วาดพื้นหลัง
 
-    # เคลื่อนชั้นวางและโต๊ะเข้ามาพร้อมกัน
-    if shelve_y < shelve_target_y:
-        shelve_y += shelve_speed
-    if table_x < -133:
-        table_x += shelve_speed  # ใช้ความเร็วเดียวกับชั้นวาง
-    else:
-        show_cakes = True  # เมื่อชั้นวางถึงจุดสุดท้าย ให้แสดงเค้ก
+# ----------------------------------------------------------------------------
+# 9) ฟังก์ชันวาดฉาก (draw_scene)
+# ----------------------------------------------------------------------------
+def draw_scene():
+    screen.blit(background, (0, 0))
+    screen.blit(palette_bg, palette_pos)
 
-    screen.blit(table, (table_x, table_y))
-    screen.blit(shelve, (shelve_x, shelve_y))
+    # วาดชั้นวาง
+    if shelve:
+        screen.blit(shelve, shelve_pos)
 
-    # แสดงข้อความ
-    text = font.render("Select Your Cake Base", True, BLACK)
-    screen.blit(text, (WIDTH // 2 - text.get_width() // 2, 100))
+    # วาดปุ่ม Back
+    if back_button:
+        screen.blit(back_button, back_rect.topleft)
 
-    # แสดงฐานเค้กหลังจากชั้นวางถึงตำแหน่งสุดท้าย
+    # วาดปุ่มเปลี่ยน sub-state (ไอคอนด้านบน)
+    for st in states:
+        icon_img = mode_icons[st]
+        if icon_img:
+            screen.blit(icon_img, icon_positions[st])
+
+    # วาดพาเลตต์สี
+    for i, color in enumerate(color_names):
+        if color in color_icons:
+            screen.blit(color_icons[color], color_positions[i])
+
+    # วาดข้อความหัวข้อ
+    text = font.render("RealOrCake - Decoration State with Sub-States", True, (0,0,0))
+    screen.blit(text, (WIDTH//2 - text.get_width()//2, 100))
+
+    # วาดตัวเลือกบนชั้นวาง เฉพาะ sub-state ปัจจุบัน
     if show_cakes:
-        for key, pos in final_positions.items():
-            if cake_options[key]:
-                screen.blit(cake_options[key], pos)
-        screen.blit(reset_button, reset_button_pos)
-        screen.blit(finish_button, finish_button_pos)
+        types_for_this_state = state_options[current_mode]
+        for i, cake_type in enumerate(types_for_this_state):
+            if i < len(shelf_positions):
+                # โหลด thumbnail สำหรับแต่ละ type
+                thumb_path = f"Elements/thumbnail/{current_mode}_{cake_type}.png"
+                thumb_img = load_image(thumb_path, (260, 260))
+                if thumb_img:
+                    screen.blit(thumb_img, shelf_positions[i])
+        # วาดปุ่ม reset, show
+        if reset_button:
+            screen.blit(reset_button, reset_rect.topleft)
+        if show_button:
+            screen.blit(show_button, show_rect.topleft)
 
-    # แสดงฐานเค้กที่ถูกเลือก
-    if selected_cake:
-        selected_cake_img = load_cake_image(selected_cake)
-        if selected_cake_img:
-            selected_cake_img = pygame.transform.scale(selected_cake_img, (847, 847))
-            cake_x = 100
-            cake_y = 248
-            screen.blit(selected_cake_img, (cake_x, cake_y))
+    # วาดเค้ก (รวมทุก sub-state) ทับซ้อนกันตามลำดับที่ต้องการ
+    # ลำดับ: base -> topcream -> lowercream -> middlecream -> behindcream -> topping
+    cake_draw_order = ["base", "topcream", "lowercream", "middlecream", "behindcream", "topping"]
+    final_cake_x, final_cake_y = 100, 248
 
-    # ตรวจจับเหตุการณ์
+    for st in cake_draw_order:
+        t = selected_type[st]      # type ที่ผู้ใช้เลือก
+        c = selected_color[st]     # color ที่ผู้ใช้เลือก (หรือ default "none" ถ้ายังไม่เลือก)
+        part_img = load_cake_part(st, t, c)
+        if part_img:
+            part_img = pygame.transform.scale(part_img, (847, 847))
+            screen.blit(part_img, (final_cake_x, final_cake_y))
+
+# ----------------------------------------------------------------------------
+# 10) ฟังก์ชันจัดการเหตุการณ์ (handle_events)
+# ----------------------------------------------------------------------------
+def handle_events():
+    global running, show_cakes, current_mode
+    global selected_color_global
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:  # กด ESC เพื่อออกจากเกม
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
                 running = False
-
-        if event.type == pygame.MOUSEBUTTONDOWN and show_cakes:
+        elif event.type == pygame.MOUSEBUTTONDOWN:
             x, y = event.pos
-            # ตรวจจับการกดเลือกเค้ก
-            for key, pos in final_positions.items():
-                cake_rect = pygame.Rect(pos[0], pos[1], 260, 260)
-                if cake_rect.collidepoint(x, y):
-                    selected_cake = key  # กำหนดฐานเค้กที่เลือก
-            
-            # ตรวจจับการกดปุ่ม Reset
-            reset_rect = pygame.Rect(reset_button_pos[0], reset_button_pos[1], 200, 100)
-            if reset_rect.collidepoint(x, y):
-                selected_cake = None
-            
-            # ตรวจจับการกดปุ่ม Finish
-            finish_rect = pygame.Rect(finish_button_pos[0], finish_button_pos[1], 200, 100)
-            if finish_rect.collidepoint(x, y):
-                print("Cake selection finished!")  # สามารถเพิ่มการบันทึกผลหรือเปลี่ยนไปหน้าถัดไป
 
-    pygame.display.flip()  # อัปเดตหน้าจอ
+            # (1) ตรวจสอบการคลิกที่ปุ่มเปลี่ยน sub-state (ไอคอนด้านบน)
+            for st in states:
+                icon_img = mode_icons[st]
+                if icon_img:
+                    icon_rect = pygame.Rect(icon_positions[st][0],
+                                            icon_positions[st][1],
+                                            icon_img.get_width(),
+                                            icon_img.get_height())
+                    if icon_rect.collidepoint(x, y):
+                        current_mode = st
+                        print(f"Switched to sub-state: {current_mode}")
+                        break
 
-pygame.quit()
+            # (2) ตรวจสอบการคลิกที่ปุ่ม Reset
+            if reset_rect and reset_rect.collidepoint(x, y):
+                for st in states:
+                    selected_type[st] = None
+                    selected_color[st] = None
+                selected_color_global = None
+                print("Reset selection")
+
+            # (3) ตรวจสอบการคลิกที่ปุ่ม Show (สลับการแสดงผลตัวเลือกบนชั้น)
+            if show_rect and show_rect.collidepoint(x, y):
+                show_cakes = not show_cakes
+                print(f"Show cakes: {show_cakes}")
+
+            # (4) ตรวจสอบการคลิกที่ปุ่ม Back
+            if back_rect and back_rect.collidepoint(x, y):
+                print("Back to Home")
+                # เพิ่มการทำงานกลับหน้าหลักหรือออกจากเกมตามต้องการ
+
+            # (5) ตรวจสอบการคลิกที่พาเลตต์สี
+            for i, pos in enumerate(color_positions):
+                color_rect = pygame.Rect(pos[0], pos[1], 50, 50)
+                if color_rect.collidepoint(x, y):
+                    selected_color_global = color_names[i]
+                    selected_color[current_mode] = selected_color_global
+                    print(f"Selected color for [{current_mode}]: {selected_color_global}")
+
+            # (6) ตรวจสอบการคลิกบน "ชั้นวาง" เพื่อเลือก type
+            if show_cakes:
+                types_for_this_state = state_options[current_mode]
+                for i, cake_type in enumerate(types_for_this_state):
+                    if i < len(shelf_positions):
+                        rect = pygame.Rect(shelf_positions[i], (260, 260))
+                        if rect.collidepoint(x, y):
+                            selected_type[current_mode] = cake_type
+                            print(f"Selected type for [{current_mode}]: {cake_type}")
+
+# ----------------------------------------------------------------------------
+# 11) ฟังก์ชันหลัก (main)
+# ----------------------------------------------------------------------------
+def main():
+    global running
+    clock = pygame.time.Clock()
+
+    while running:
+        handle_events()
+        draw_scene()
+        pygame.display.flip()
+        clock.tick(60)  # จำกัดเฟรมเรตที่ 60 fps
+
+    pygame.quit()
+
+if __name__ == '__main__':
+    main()

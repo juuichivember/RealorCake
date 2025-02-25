@@ -6,6 +6,7 @@ from screen import change_ratio_1080_to_720 as change
 # กำหนดสี
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+RATIO_720p = 1.5 # หาร 1080p ด้วย 1.5
 
 # Concrete State
 # ทุก State class ต้องมี function อันเดียวกันทั้งหมด
@@ -18,16 +19,22 @@ class Start:
         self.screen_w = screen_w
         self.screen_h = screen_h
 
-        self.background = pygame.image.load("Elements/Homepage_bg.png")
+        self.background = pygame.image.load("Elements/homepage_bg.png")
         self.background = pygame.transform.smoothscale(self.background, (self.screen_w, self.screen_h))
 
-        self.button_img = pygame.image.load("Elements/button.png").convert_alpha()
-        self.play_button = button.Button(200, 200, self.button_img, 0.2)
-        self.exit_button = button.Button(200, 300, self.button_img, 0.2)
-    
+        self.logo = pygame.image.load("Elements/logo.png")
+        logo_w, logo_h = self.logo.get_size()
+        self.logo = pygame.transform.smoothscale(self.logo, (logo_w / RATIO_720p, logo_h / RATIO_720p))
+
+        self.play_button = pygame.image.load("Elements/play_button.png").convert_alpha()
+        self.play_button = button.Button(165, 311, self.play_button, 1 / RATIO_720p)
+        self.exit_button = pygame.image.load("Elements/exit_button.png").convert_alpha()
+        self.exit_button = button.Button(165, 423, self.exit_button, 1 / RATIO_720p)
+            
     def run(self):
         # RUN
         self.display.blit(self.background, (0,0))
+        self.display.blit(self.logo, (22,35))
         self.play_button.draw(self.display)
         self.exit_button.draw(self.display)
         if self.play_button.is_mouse_over():

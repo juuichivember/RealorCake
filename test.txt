@@ -13,15 +13,52 @@ background = pygame.transform.scale(background, (WIDTH, HEIGHT))
 
 # โหลดภาพชั้นวางเค้ก
 shelve = pygame.image.load("Elements/shelve.png")
-shelve = pygame.transform.scale(shelve, (762, 801))  # ปรับขนาดชั้นวาง
-shelve_x, shelve_y = (1121, -292)  # เริ่มต้นอยู่นอกจอด้านบน
-shelve_target_y = 108  # จุดที่ชั้นวางต้องหยุด
-shelve_speed = 15  # ความเร็วในการเลื่อนลงมา
+shelve = pygame.transform.scale(shelve, (775, 806))  # ปรับขนาดชั้นวาง
+shelve_x, shelve_y = (1083, 138)  # แสดงชั้นวางเลย ไม่ต้องเคลื่อน
 
-# โหลดภาพโต๊ะ
-table = pygame.image.load("Elements/table.png")
-table = pygame.transform.scale(table, (1303, 814))  # ปรับขนาดโต๊ะ
-table_x, table_y = (-533, 796)  # เริ่มต้นอยู่นอกจอด้านซ้าย
+# โหลดปุ่มรีเซ็ตและปุ่มเสร็จสิ้น
+reset_button = pygame.image.load("Elements/reset_button.png")
+reset_button = pygame.transform.scale(reset_button, (212, 124))
+reset_button_pos = (1240, 940)
+reset_rect = reset_button.get_rect(topleft=reset_button_pos)
+
+show_button = pygame.image.load("Elements/show_button.png")
+show_button = pygame.transform.scale(show_button, (212, 124))
+show_button_pos = (1540, 940)
+show_rect = show_button.get_rect(topleft=show_button_pos)
+
+# โหลดปุ่มกลับหน้า Home
+back_button = pygame.image.load("Elements/back_button.png")
+back_button = pygame.transform.scale(back_button, (222, 122))
+back_button_pos = (50, 50)
+back_rect = back_button.get_rect(topleft=back_button_pos)
+
+# โหลดถาดสี (Palette)
+palette_bg = pygame.image.load("Elements/Color/painttray.png")
+palette_bg = pygame.transform.scale(palette_bg, (150, 390))
+palette_pos = (930, 150)
+
+# รายชื่อสีในพาเลตต์
+color_names = ["none", "grape", "bluberry", "mint", "vanilla", "milk", "carrot", "redvelvet", "strawberry", "charcole", "chocolate", "coffee"]
+
+# โหลดไอคอนสี
+color_icons = {color: pygame.image.load(f"Elements/Color/{color}.png") for color in color_names}
+
+# ปรับขนาดไอคอนสี
+for key in color_icons:
+    color_icons[key] = pygame.transform.scale(color_icons[key], (50, 50))
+
+# ตำแหน่งของไอคอนสี (2 คอลัมน์)
+color_positions = []
+for i in range(len(color_names)):
+    col = i % 2  # คำนวณคอลัมน์ (0 หรือ 1)
+    row = i // 2  # คำนวณแถว
+    x_pos = palette_pos[0] + 20 + (col * 60)  # คอลัมน์ห่างกัน 60 px
+    y_pos = palette_pos[1] + 20 + (row * 60)  # แถวห่างกัน 60 px
+    color_positions.append((x_pos, y_pos))
+
+# เก็บสีที่เลือก
+selected_color = None
 
 # กำหนดสี
 WHITE = (255, 255, 255)
@@ -29,7 +66,7 @@ BLACK = (0, 0, 0)
 
 # ฟังก์ชันโหลดรูปภาพจากโฟลเดอร์
 def load_cake_image(cake_type):
-    path = f"Elements/layer7_base_1/{cake_type}.png"
+    path = f"Elements/layer7_base_1/layer7_base_1{cake_type}.png"
     if os.path.exists(path):
         return pygame.image.load(path)
     return None
@@ -46,9 +83,9 @@ cake_options = {cake: load_cake_image(cake) for cake in cake_types}
 
 # ตำแหน่งของเค้ก
 final_positions = {
-    "vanilla": (1155, 209), "chocolate": (1377, 209), "strawberry": (1595, 209),
-    "charcole": (1155, 440), "blueberry": (1377, 440), "grape": (1595, 440),
-    "carrot": (1155, 666), "milk": (1377, 666), "mint": (1595, 666)
+    "vanilla": (1122, 160), "chocolate": (1339, 160), "strawberry": (1556, 160),
+    "charcole": (1122, 394), "blueberry": (1339, 394), "grape": (1556, 394),
+    "carrot": (1122, 636), "milk": (1339, 636), "mint": (1556, 636)
 }
 
 for key in cake_options:
@@ -62,29 +99,34 @@ selected_cake = None
 font = pygame.font.Font(None, 50)
 
 # ตัวแปรควบคุมการแสดงเค้ก
-show_cakes = False
+show_cakes = True  # ปรับให้เค้กแสดงผลทันที
 
 # วนลูปเกม
 running = True
 while running:
     screen.blit(background, (0, 0))  # วาดพื้นหลัง
-
-    # เคลื่อนชั้นวางและโต๊ะเข้ามาพร้อมกัน
-    if shelve_y < shelve_target_y:
-        shelve_y += shelve_speed
-    if table_x < -133:
-        table_x += shelve_speed  # ใช้ความเร็วเดียวกับชั้นวาง
-    else:
-        show_cakes = True  # เมื่อชั้นวางถึงจุดสุดท้าย ให้แสดงเค้ก
-
-    screen.blit(table, (table_x, table_y))
+    screen.blit(palette_bg, palette_pos)  # วาดพาเลตต์สี
     screen.blit(shelve, (shelve_x, shelve_y))
+    screen.blit(back_button, back_button_pos)
 
-    # แสดงฐานเค้กหลังจากชั้นวางถึงตำแหน่งสุดท้าย
+    # วาดไอคอนสี
+    for i, color in enumerate(color_names):
+        screen.blit(color_icons[color], color_positions[i])
+
+    screen.blit(shelve, (shelve_x, shelve_y))
+    screen.blit(back_button, back_button_pos)
+
+    # แสดงข้อความ
+    text = font.render("Select Your Cake Base", True, BLACK)
+    screen.blit(text, (WIDTH // 2 - text.get_width() // 2, 100))
+
+    # แสดงฐานเค้ก
     if show_cakes:
         for key, pos in final_positions.items():
             if cake_options[key]:
                 screen.blit(cake_options[key], pos)
+        screen.blit(reset_button, reset_button_pos)
+        screen.blit(show_button, show_button_pos)
 
     # แสดงฐานเค้กที่ถูกเลือก
     if selected_cake:
@@ -106,10 +148,12 @@ while running:
 
         if event.type == pygame.MOUSEBUTTONDOWN and show_cakes:
             x, y = event.pos
-            for key, pos in final_positions.items():
-                cake_rect = pygame.Rect(pos[0], pos[1], 260, 260)
-                if cake_rect.collidepoint(x, y):
-                    selected_cake = key  # กำหนดฐานเค้กที่เลือก
+            # ตรวจจับการกดเลือกสีจากพาเลตต์
+            for i, color_pos in enumerate(color_positions):
+                color_rect = pygame.Rect(color_pos[0], color_pos[1], 50, 50)
+                if color_rect.collidepoint(x, y):
+                    selected_color = color_names[i]  # บันทึกสีที่เลือก
+                    print(f"Selected color: {selected_color}")
 
     pygame.display.flip()  # อัปเดตหน้าจอ
 
