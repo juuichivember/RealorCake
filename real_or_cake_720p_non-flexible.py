@@ -3,12 +3,8 @@ import os
 
 pygame.init()
 
-# กำหนดความละเอียดหน้าจอใหม่ และคำนวณ SCALE (1280/1920 = 2/3)
-NEW_WIDTH, NEW_HEIGHT = 1280, 720
-OLD_WIDTH, OLD_HEIGHT = 1920, 1080
-SCALE = NEW_WIDTH / OLD_WIDTH  # ประมาณ 0.6667
-
-screen = pygame.display.set_mode((NEW_WIDTH, NEW_HEIGHT))
+WIDTH, HEIGHT = 1280, 720
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("RealOrCake - Decoration State with Sub-States")
 
 # ----------------------------------------------------------------------------
@@ -28,27 +24,28 @@ def load_image(path, scale=None):
     return pygame.Surface((1, 1), pygame.SRCALPHA)
 
 # ----------------------------------------------------------------------------
-# 2) โหลดภาพพื้นหลัง / ปุ่ม / พาเลตต์สี โดยปรับขนาดและตำแหน่งตาม SCALE
+# 2) โหลดภาพพื้นหลัง / ปุ่ม / พาเลตต์สี ฯลฯ โดยปรับตำแหน่ง x ให้ขยับไปด้านขวา 100px
 # ----------------------------------------------------------------------------
-background = load_image("Elements/shop_background.png", (NEW_WIDTH, NEW_HEIGHT))
+background = load_image("Elements/shop_background_720.png", (WIDTH, HEIGHT))
+# ในกรณี background ถ้าอยากให้ขยับ ก็ให้ blit ด้วยตำแหน่ง (100, 0) ใน draw_scene
 
-shelve = load_image("Elements/shelve.png", (int(775 * SCALE), int(806 * SCALE)))
-shelve_pos = (int(1083 * SCALE), int(138 * SCALE))
+shelve = load_image("Elements/shelve.png", (465, 484))
+shelve_pos = (790, 88)         # เดิม (650, 78) -> +100
 
-reset_button = load_image("Elements/reset_button.png", (int(212 * SCALE), int(124 * SCALE)))
-reset_rect = reset_button.get_rect(topleft=(int(1240 * SCALE), int(940 * SCALE))) if reset_button else None
+reset_button = load_image("Elements/reset_button.png", (134, 75))
+reset_rect = reset_button.get_rect(topleft=(884, 574))  # เดิม (744, 564) -> +100
 
-show_button = load_image("Elements/show_button.png", (int(212 * SCALE), int(124 * SCALE)))
-show_rect = show_button.get_rect(topleft=(int(1540 * SCALE), int(940 * SCALE))) if show_button else None
+show_button = load_image("Elements/show_button.png", (134, 75))
+show_rect = show_button.get_rect(topleft=(1064, 574))     # เดิม (924, 564) -> +100
 
-back_button = load_image("Elements/back_button.png", (int(222 * SCALE), int(122 * SCALE)))
-back_rect = back_button.get_rect(topleft=(int(50 * SCALE), int(50 * SCALE))) if back_button else None
+back_button = load_image("Elements/back_button.png", (134, 75))
+back_rect = back_button.get_rect(topleft=(70, 40))         # เดิม (30, 30) -> +100
 
-palette_bg = load_image("Elements/Color/painttray.png", (int(150 * SCALE), int(390 * SCALE)))
-palette_pos = (int(930 * SCALE), int(150 * SCALE))
+palette_bg = load_image("Elements/Color/painttray.png", (90, 234))
+palette_pos = (698, 100)        # เดิม (558, 90) -> +100
 
 # ----------------------------------------------------------------------------
-# 3) จัดการ "สี" (color) และตำแหน่งไอคอนในพาเลตต์
+# 3) จัดการ "สี" (color) และตำแหน่งไอคอนในพาเลตต์ โดยปรับ x เพิ่ม 100px
 # ----------------------------------------------------------------------------
 color_names = [
     "none", "grape", "bluberry", "mint", "vanilla", "milk",
@@ -57,21 +54,22 @@ color_names = [
 
 color_icons = {}
 for color in color_names:
-    img = load_image(f"Elements/Color/{color}.png", (int(50 * SCALE), int(50 * SCALE)))
+    img = load_image(f"Elements/Color/{color}.png", (30, 30))
     if img:
         color_icons[color] = img
 
+# คำนวณตำแหน่งของไอคอนสีในพาเลตต์ (2 คอลัมน์)
 color_positions = []
 for i, _ in enumerate(color_names):
     col = i % 2
     row = i // 2
-    # ปรับ offset ด้วย SCALE
-    x_pos = palette_pos[0] + int(20 * SCALE) + (col * int(60 * SCALE))
-    y_pos = palette_pos[1] + int(20 * SCALE) + (row * int(60 * SCALE))
+    # เริ่มต้น x ใช้ palette_pos[0] ที่ปรับแล้ว
+    x_pos = palette_pos[0] + 12 + (col * 36)
+    y_pos = palette_pos[1] + 12 + (row * 36)
     color_positions.append((x_pos, y_pos))
 
 # ----------------------------------------------------------------------------
-# 4) กำหนด sub-states และข้อมูลตัวเลือก
+# 4) สร้าง "sub-state" และข้อมูลตัวเลือก (type) ของแต่ละ sub-state
 # ----------------------------------------------------------------------------
 states = ["base", "behindcream", "lowercream", "middlecream", "topcream", "topping"]
 
@@ -89,30 +87,29 @@ selected_color = {s: None for s in states}
 current_mode = "base"
 
 # ----------------------------------------------------------------------------
-# 5) โหลดไอคอนปุ่มด้านบนสำหรับเปลี่ยน sub-state และกำหนดตำแหน่ง
+# 5) โหลดไอคอนปุ่มด้านบนสำหรับเปลี่ยน sub-state พร้อมปรับตำแหน่ง x (+100)
 # ----------------------------------------------------------------------------
 mode_icons = {}
 icon_positions = {}
-start_x = int(1100 * SCALE)  # ตำแหน่ง x เริ่มต้นปรับด้วย SCALE
-gap_x = int(125 * SCALE)     # ระยะห่างระหว่างปุ่ม
+start_x = 800  # เดิม 660 -> +100
+gap_x = 75
 for i, st in enumerate(states):
     icon_path = f"Elements/{st}_button.png"
-    # ปรับขนาดไอคอนด้วย SCALE
-    icon_img = load_image(icon_path, (int(110 * SCALE), int(110 * SCALE)))
+    icon_img = load_image(icon_path, (66, 66))
     mode_icons[st] = icon_img
-    icon_positions[st] = (start_x + i * gap_x, int(25 * SCALE))
+    icon_positions[st] = (start_x + i * gap_x, 15)
 
 # ----------------------------------------------------------------------------
-# 6) กำหนดตำแหน่งชั้นวาง (shelf) สำหรับวางตัวเลือก type
+# 6) ตำแหน่งของชั้นวาง (shelf) สำหรับวางภาพตัวเลือก type (แก้ x +100)
 # ----------------------------------------------------------------------------
 shelf_positions = [
-    (int(1122 * SCALE), int(160 * SCALE)), (int(1339 * SCALE), int(160 * SCALE)), (int(1556 * SCALE), int(160 * SCALE)),
-    (int(1122 * SCALE), int(394 * SCALE)), (int(1339 * SCALE), int(394 * SCALE)), (int(1556 * SCALE), int(394 * SCALE)),
-    (int(1122 * SCALE), int(636 * SCALE)), (int(1339 * SCALE), int(636 * SCALE)), (int(1556 * SCALE), int(636 * SCALE))
+    (814, 106), (944, 106), (1074, 106),
+    (814, 247), (944, 247), (1074, 247),
+    (814, 422), (904, 422), (1074, 422)
 ]
 
 # ----------------------------------------------------------------------------
-# 7) ฟังก์ชันโหลดภาพเค้กส่วนต่าง ๆ
+# 7) ฟังก์ชันสำหรับโหลด "ภาพเค้กจริง" ที่ผู้ใช้เลือก
 # ----------------------------------------------------------------------------
 def load_cake_part(state_name, cake_type, color):
     if not cake_type:
@@ -134,7 +131,7 @@ def load_cake_part(state_name, cake_type, color):
 # ----------------------------------------------------------------------------
 selected_color_global = None
 show_cakes = True
-font = pygame.font.Font(None, int(50 * SCALE))
+font = pygame.font.Font(None, 50)
 
 running = True
 
@@ -142,6 +139,7 @@ running = True
 # 9) ฟังก์ชันวาดฉาก (draw_scene)
 # ----------------------------------------------------------------------------
 def draw_scene():
+    # หากต้องการขยับ background ไปด้านขวา 100px ให้ blit ที่ (100, 0)
     screen.blit(background, (0, 0))
     screen.blit(palette_bg, palette_pos)
 
@@ -151,28 +149,25 @@ def draw_scene():
     if back_button:
         screen.blit(back_button, back_rect.topleft)
 
-    # วาดไอคอนเปลี่ยน sub-state
     for st in states:
         icon_img = mode_icons[st]
         if icon_img:
             screen.blit(icon_img, icon_positions[st])
 
-    # วาดพาเลตต์สี
     for i, color in enumerate(color_names):
         if color in color_icons:
             screen.blit(color_icons[color], color_positions[i])
 
-    # วาดหัวข้อ
     text = font.render("RealOrCake - Decoration State with Sub-States", True, (0, 0, 0))
-    screen.blit(text, (NEW_WIDTH // 2 - text.get_width() // 2, int(100 * SCALE)))
+    # ปรับตำแหน่งข้อความให้ขยับไปด้านขวา 100px (เพิ่ม 100 ในแกน x)
+    screen.blit(text, ((WIDTH // 2 - text.get_width() // 2), 70))
 
-    # วาดตัวเลือกบนชั้นวาง (เฉพาะ sub-state ปัจจุบัน)
     if show_cakes:
         types_for_this_state = state_options[current_mode]
         for i, cake_type in enumerate(types_for_this_state):
             if i < len(shelf_positions):
                 thumb_path = f"Elements/thumbnail/{current_mode}_{cake_type}.png"
-                thumb_img = load_image(thumb_path, (int(260 * SCALE), int(260 * SCALE)))
+                thumb_img = load_image(thumb_path, (156, 156))
                 if thumb_img:
                     screen.blit(thumb_img, shelf_positions[i])
         if reset_button:
@@ -180,16 +175,16 @@ def draw_scene():
         if show_button:
             screen.blit(show_button, show_rect.topleft)
 
-    # วาดเค้ก (รวมทุก sub-state)
     cake_draw_order = ["base", "topcream", "lowercream", "middlecream", "behindcream", "topping"]
-    final_cake_x, final_cake_y = int(100 * SCALE), int(248 * SCALE)
+    # ปรับตำแหน่งของเค้กให้ x +100 (จาก 60 เป็น 160)
+    final_cake_x, final_cake_y = 170, 189
 
     for st in cake_draw_order:
         t = selected_type[st]
         c = selected_color[st]
         part_img = load_cake_part(st, t, c)
         if part_img:
-            part_img = pygame.transform.scale(part_img, (int(847 * SCALE), int(847 * SCALE)))
+            part_img = pygame.transform.scale(part_img, (509, 509))
             screen.blit(part_img, (final_cake_x, final_cake_y))
 
 # ----------------------------------------------------------------------------
@@ -207,7 +202,6 @@ def handle_events():
         elif event.type == pygame.MOUSEBUTTONDOWN:
             x, y = event.pos
 
-            # ตรวจสอบการคลิกที่ไอคอนเปลี่ยน sub-state
             for st in states:
                 icon_img = mode_icons[st]
                 if icon_img:
@@ -220,7 +214,6 @@ def handle_events():
                         print(f"Switched to sub-state: {current_mode}")
                         break
 
-            # ตรวจสอบปุ่ม Reset
             if reset_rect and reset_rect.collidepoint(x, y):
                 for st in states:
                     selected_type[st] = None
@@ -228,30 +221,26 @@ def handle_events():
                 selected_color_global = None
                 print("Reset selection")
 
-            # ตรวจสอบปุ่ม Show
             if show_rect and show_rect.collidepoint(x, y):
+                global show_cakes
                 show_cakes = not show_cakes
                 print(f"Show cakes: {show_cakes}")
 
-            # ตรวจสอบปุ่ม Back
             if back_rect and back_rect.collidepoint(x, y):
                 print("Back to Home")
-                # เพิ่มการทำงานกลับหน้าหลักหรือออกจากเกม
 
-            # ตรวจสอบการคลิกในพาเลตต์สี
             for i, pos in enumerate(color_positions):
-                color_rect = pygame.Rect(pos[0], pos[1], int(50 * SCALE), int(50 * SCALE))
+                color_rect = pygame.Rect(pos[0], pos[1], 30, 30)
                 if color_rect.collidepoint(x, y):
                     selected_color_global = color_names[i]
                     selected_color[current_mode] = selected_color_global
                     print(f"Selected color for [{current_mode}]: {selected_color_global}")
 
-            # ตรวจสอบการคลิกบนชั้นวางเพื่อเลือก type
             if show_cakes:
                 types_for_this_state = state_options[current_mode]
                 for i, cake_type in enumerate(types_for_this_state):
                     if i < len(shelf_positions):
-                        rect = pygame.Rect(shelf_positions[i], (int(260 * SCALE), int(260 * SCALE)))
+                        rect = pygame.Rect(shelf_positions[i], (156, 156))
                         if rect.collidepoint(x, y):
                             selected_type[current_mode] = cake_type
                             print(f"Selected type for [{current_mode}]: {cake_type}")
@@ -267,7 +256,7 @@ def main():
         handle_events()
         draw_scene()
         pygame.display.flip()
-        clock.tick(60)  # จำกัดเฟรมเรตที่ 60 fps
+        clock.tick(60)
 
     pygame.quit()
 
