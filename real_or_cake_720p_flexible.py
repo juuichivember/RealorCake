@@ -39,7 +39,7 @@ shelve_pos = (0, 0)
 # ปุ่ม reset/show/back
 reset_button = None
 reset_rect = None
-show_button = None
+finish_button = None
 show_rect = None
 back_button = None
 back_rect = None
@@ -72,7 +72,7 @@ def update_layout():
     global palette_bg, palette_pos
     global shelve, shelve_pos
     global reset_button, reset_rect
-    global show_button, show_rect
+    global finish_button, show_rect
     global back_button, back_rect
     global color_icons, color_positions
     global mode_icons, icon_positions
@@ -114,7 +114,7 @@ def update_layout():
     # ปุ่ม Reset, Show - วางด้านล่างของชั้นวาง (ชิดขวา)
     # -------------------------------
     reset_button = load_image("Elements/reset_button.png", (int(134 * scale), int(75 * scale)))
-    show_button = load_image("Elements/show_button.png", (int(134 * scale), int(75 * scale)))
+    finish_button = load_image("Elements/finish_button.png", (int(134 * scale), int(75 * scale)))
 
     if shelve:
         # เอา y ด้านล่างของ shelve + margin (เล็กน้อย)
@@ -126,10 +126,10 @@ def update_layout():
         btn_y = int(window_height * 0.7)
 
     # จัดปุ่ม Show อยู่ขวาสุด, ปุ่ม Reset อยู่ถัดมาทางซ้าย
-    if show_button:
-        show_w, show_h = show_button.get_width(), show_button.get_height()
+    if finish_button:
+        show_w, show_h = finish_button.get_width(), finish_button.get_height()
         show_x = window_width - show_w - margin_right
-        show_rect = show_button.get_rect(topleft=(show_x, btn_y))
+        show_rect = finish_button.get_rect(topleft=(show_x, btn_y))
     else:
         show_rect = None
 
@@ -303,8 +303,8 @@ def draw_scene():
         # ปุ่ม Reset, Show
         if reset_button and reset_rect:
             screen.blit(reset_button, reset_rect.topleft)
-        if show_button and show_rect:
-            screen.blit(show_button, show_rect.topleft)
+        if finish_button and show_rect:
+            screen.blit(finish_button, show_rect.topleft)
 
     # วาดเค้ก
     cake_draw_order = ["base", "topcream", "lowercream", "middlecream", "behindcream", "topping"]

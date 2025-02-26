@@ -35,8 +35,8 @@ shelve_pos = (1083, 138)
 reset_button = load_image("Elements/reset_button.png", (212, 124))
 reset_rect = reset_button.get_rect(topleft=(1240, 940)) if reset_button else None
 
-show_button = load_image("Elements/show_button.png", (212, 124))
-show_rect = show_button.get_rect(topleft=(1540, 940)) if show_button else None
+finish_button = load_image("Elements/finish_button.png", (212, 124))
+show_rect = finish_button.get_rect(topleft=(1540, 940)) if finish_button else None
 
 back_button = load_image("Elements/back_button.png", (222, 122))
 back_rect = back_button.get_rect(topleft=(50, 50)) if back_button else None
@@ -187,8 +187,8 @@ def draw_scene():
         # วาดปุ่ม reset, show
         if reset_button:
             screen.blit(reset_button, reset_rect.topleft)
-        if show_button:
-            screen.blit(show_button, show_rect.topleft)
+        if finish_button:
+            screen.blit(finish_button, show_rect.topleft)
 
     # วาดเค้ก (รวมทุก sub-state) ทับซ้อนกันตามลำดับที่ต้องการ
     # ลำดับ: base -> topcream -> lowercream -> middlecream -> behindcream -> topping

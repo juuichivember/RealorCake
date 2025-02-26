@@ -35,8 +35,8 @@ shelve_pos = (790, 88)         # เดิม (650, 78) -> +100
 reset_button = load_image("Elements/reset_button.png", (134, 75))
 reset_rect = reset_button.get_rect(topleft=(884, 574))  # เดิม (744, 564) -> +100
 
-show_button = load_image("Elements/show_button.png", (134, 75))
-show_rect = show_button.get_rect(topleft=(1064, 574))     # เดิม (924, 564) -> +100
+finish_button = load_image("Elements/finish_button.png", (134, 75))
+show_rect = finish_button.get_rect(topleft=(1064, 574))     # เดิม (924, 564) -> +100
 
 back_button = load_image("Elements/back_button.png", (134, 75))
 back_rect = back_button.get_rect(topleft=(70, 40))         # เดิม (30, 30) -> +100
@@ -172,8 +172,8 @@ def draw_scene():
                     screen.blit(thumb_img, shelf_positions[i])
         if reset_button:
             screen.blit(reset_button, reset_rect.topleft)
-        if show_button:
-            screen.blit(show_button, show_rect.topleft)
+        if finish_button:
+            screen.blit(finish_button, show_rect.topleft)
 
     cake_draw_order = ["base", "topcream", "lowercream", "middlecream", "behindcream", "topping"]
     # ปรับตำแหน่งของเค้กให้ x +100 (จาก 60 เป็น 160)
