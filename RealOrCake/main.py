@@ -1,6 +1,6 @@
 import pygame
 import sys
-from state import Start, Decoration, End
+from state import Start, RandomCake, Decoration, Score, End, Message
 from stateManager import *
 from screen import set_screen
 
@@ -22,10 +22,19 @@ class Game():
         # Call Context's and Concrete State's Constructor
         self.gameStateManager = GameStateManager('start')
         self.start = Start(self.screen, self.gameStateManager, self.screen_w, self.screen_h)
+        self.random_cake = RandomCake(self.screen, self.gameStateManager, self.screen_w, self.screen_h)
         self.decoration = Decoration(self.screen, self.gameStateManager, self.screen_w, self.screen_h)
+        self.score_page = Score(self.screen, self.gameStateManager, self.screen_w, self.screen_h)
         self.end = End(self.screen, self.gameStateManager, self.screen_w, self.screen_h)
+        self.message = Message(self.screen, self.gameStateManager, self.screen_w, self.screen_h)
 
-        self.states = {'start': self.start, 'decoration': self.decoration, 'end': self.end}
+        self.states = {'start': self.start, 
+                       'random_cake': self.random_cake,
+                       'decoration': self.decoration,
+                       'score_page': self.score_page,
+                       'end': self.end,
+                       'end_message': self.message
+                       }
 
 
     def run(self):
@@ -34,6 +43,11 @@ class Game():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        pygame.quit()
+                        sys.exit()
 
             self.states[self.gameStateManager.get_state()].run()
             

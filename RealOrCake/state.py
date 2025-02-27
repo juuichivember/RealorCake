@@ -1,6 +1,6 @@
 import pygame
 import button
-from loadImage import load_cake_image
+from decoModule import load_image, load_cake_part
 from screen import change_ratio_1080_to_720 as change
 
 # กำหนดสี
@@ -19,16 +19,16 @@ class Start:
         self.screen_w = screen_w
         self.screen_h = screen_h
 
-        self.background = pygame.image.load("Elements/homepage_bg.png")
+        self.background = pygame.image.load("Elements/background/homepage_bg.png")
         self.background = pygame.transform.smoothscale(self.background, (self.screen_w, self.screen_h))
 
-        self.logo = pygame.image.load("Elements/logo.png")
+        self.logo = pygame.image.load("Elements/other/logo.png")
         logo_w, logo_h = self.logo.get_size()
         self.logo = pygame.transform.smoothscale(self.logo, (logo_w / RATIO_720p, logo_h / RATIO_720p))
 
-        self.play_button = pygame.image.load("Elements/play_button.png").convert_alpha()
+        self.play_button = pygame.image.load("Elements/button/play_button.png").convert_alpha()
         self.play_button = button.Button(165, 311, self.play_button, 1 / RATIO_720p)
-        self.exit_button = pygame.image.load("Elements/exit_button.png").convert_alpha()
+        self.exit_button = pygame.image.load("Elements/button/exit_button.png").convert_alpha()
         self.exit_button = button.Button(165, 423, self.exit_button, 1 / RATIO_720p)
             
     def run(self):
@@ -38,9 +38,28 @@ class Start:
         self.play_button.draw(self.display)
         self.exit_button.draw(self.display)
         if self.play_button.is_mouse_over():
-            self.gameStateManager.set_state('decoration')
+            self.gameStateManager.set_state('random_cake')
         if self.exit_button.is_mouse_over():
             pygame.quit()
+
+# added
+class RandomCake:
+    # Constructor
+    def __init__(self, display, gameStateManager, screen_w, screen_h):
+        self.display = display
+        self.gameStateManager = gameStateManager
+        self.screen_w = screen_w
+        self.screen_h = screen_h
+
+    def run(self):
+        self.display.fill('green')  
+        font = pygame.font.Font(None, 50)
+        text = font.render("Random Cake Page! press e to go to the next page", True, BLACK)
+        self.display.blit(text, (self.screen_w // 2 - text.get_width() // 2, self.screen_h // 2 - text.get_height() // 2))
+
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_e]:
+            self.gameStateManager.set_state('decoration')
 
 class Decoration:
     # Constructor
@@ -51,106 +70,194 @@ class Decoration:
         self.screen_h = screen_h
 
         # โหลดภาพพื้นหลัง
-        self.background = pygame.image.load("Elements/shop_background.png")
+        self.background = pygame.image.load("Elements/background/shop_background.png")
         self.background = pygame.transform.smoothscale(self.background, (self.screen_w, self.screen_h))
 
         # โหลดภาพชั้นวางเค้ก
-        self.shelve = pygame.image.load("Elements/shelve.png")
-        self.shelve = pygame.transform.smoothscale(self.shelve, (508, 534))  # ปรับขนาดชั้นวาง
+        self.shelve = pygame.image.load("Elements/other/shelve.png")
+        self.shelve = pygame.transform.smoothscale(self.shelve, (change(self.shelve.get_width()), change(self.shelve.get_height())))  # ปรับขนาดชั้นวาง
+        self.shelve_pos = (725, 112)
 
-        # โหลดภาพโต๊ะ
-        self.table = pygame.image.load("Elements/table.png")
-        self.table = pygame.transform.smoothscale(self.table, (868, 542))  # ปรับขนาดโต๊ะ
+        # โหลดภาพแถบสี
+        self.palette_bg = load_image("Elements/decoration_elements/Color/painttray.png")
+        self.palette_bg = pygame.transform.smoothscale(self.palette_bg, (change(self.palette_bg.get_width()), change(self.palette_bg.get_height()))) 
+        self.palette_pos = (613, 114) 
 
-        # โหลดปุ่มรีเซ็ตและปุ่มเสร็จสิ้น
-        reset_button_img = pygame.image.load("Elements/reset_button.png")
-        self.reset_button = button.Button(826, 633, reset_button_img, 0.511)
+        # โหลดปุ่มรีเซ็ต ปุ่มเสร็จสิ้น ปุ่มกลับ
+        reset_button_img = pygame.image.load("Elements/button/reset_button.png")
+        self.reset_button = button.Button(929, 638, reset_button_img, 1 / RATIO_720p)
 
-        finish_button_img = pygame.image.load("Elements/finish_button.png")
-        self.finish_button = button.Button(1026, 633, finish_button_img, 0.511)
+        finish_button_img = pygame.image.load("Elements/button/finish_button.png")
+        self.finish_button = button.Button(1096, 638, finish_button_img, 1 / RATIO_720p)
+
+        back_button_img = pygame.image.load("Elements/button/back_button1.png")
+        self.back_button = button.Button(21, 15, back_button_img, 1 / RATIO_720p)
 
         self.font = pygame.font.Font(None, 50)
 
-        cake_types = ["vanilla", "chocolate", "strawberry",
-                      "charcole", "blueberry", "grape",
-                      "carrot", "milk", "mint"]
-        
-        self.cake_options = {cake: load_cake_image(cake) for cake in cake_types}
+        # จัดการ "สี" (color) และตำแหน่งไอคอนในพาเลตต์ โดยปรับ x เพิ่ม 100px
+        #self.color_names = [
+            #"none", "grape", "bluberry", "mint", "vanilla", "milk",
+            #"carrot", "redvelvet", "strawberry", "charcole", "chocolate", "coffee"
+        #]
 
-        self.final_positions = {
-            "vanilla": (770, 139), "chocolate": (918, 139), "strawberry": (1063, 139),
-            "charcole": (770, 293), "blueberry": (918, 293), "grape": (1063, 293),
-            "carrot": (770, 444), "milk": (918, 444), "mint": (1063, 444)
+        self.color_names = [
+            "mint", "carrot", "charcole", "grape", "bluberry", "coffee",
+            "vanilla", "milk", "strawberry", "chocolate", "redvelvet", "none"
+        ]
+
+        self.color_icons = {}
+        for color in self.color_names:
+            img = load_image(f"Elements/decoration_elements/Color/{color}.png", (44, 42), smooth=False)
+            if img:
+                self.color_icons[color] = img
+        
+        self.color_positions = []
+        for i, _ in enumerate(self.color_names):
+            col = i % 2
+            row = i // 2
+            # เริ่มต้น x ใช้ palette_pos[0] ที่ปรับแล้ว
+            x_pos = self.palette_pos[0] + 12 + (col * 50)
+            y_pos = self.palette_pos[1] + 12 + (row * 48)
+            self.color_positions.append((x_pos, y_pos))
+
+        self.states = ["base", "behindcream", "lowercream", "middlecream", "topcream", "topping"]
+
+        self.state_options = {
+            "base":        ["layered", "plain"],
+            "behindcream": ["feather", "wave"],
+            "lowercream":  ["feather", "wave"],
+            "middlecream": ["ribbon",  "ruffle"],
+            "topcream":    ["feather", "wave"],
+            "topping":     ["bow", "crown", "floweredge", "flowertop", "pearl", "strawberry_3", "strawberry_4"]
         }
-        
-        for key in self.cake_options:
-            if self.cake_options[key]:  # ตรวจสอบว่ารูปโหลดสำเร็จ
-                self.cake_options[key] = pygame.transform.smoothscale(self.cake_options[key], (173, 173)).convert_alpha()
 
-        self.selected_cake = None
-        self.show_cakes = False
-    
+        self.selected_type = {s: None for s in self.states}
+        self.selected_color = {s: None for s in self.states}
+        self.current_mode = "base"
+
+        # โหลดไอคอนปุ่มด้านบนสำหรับเปลี่ยน sub-state พร้อมปรับตำแหน่ง x (+100)
+        self.mode_icons = {}
+        self.icon_positions = {}
+        start_x = 720
+        gap_x = 85
+        for i, st in enumerate(self.states):
+            icon_path = f"Elements/decoration_elements/deco_button/{st}_button.png"
+            icon_img = load_image(icon_path, (88, 85), smooth=False)
+            self.mode_icons[st] = icon_img
+            self.icon_positions[st] = (start_x + i * gap_x, 24)
+
+        # ตำแหน่งของชั้นวาง (shelf) สำหรับวางภาพตัวเลือก type (แก้ x +100)
+        self.shelf_positions = [
+            (749, 135), (892, 135), (1038, 135),
+            (749, 285), (892, 285), (1038, 285),
+            (749, 435), (892, 435), (1038, 435)
+        ]
+
+        # ตัวแปรและฟอนต์อื่น ๆ
+        self.selected_color_global = None
+        self.show_cakes = True
+        self.font = pygame.font.Font(None, 50)
+
     def run(self):
-        shelve_x, shelve_y = (747, -194) # เริ่มต้นอยู่นอกจอด้านบน
-        shelve_target_y = 72  # จุดที่ชั้นวางต้องหยุด
-        shelve_speed = 15  # ความเร็วในการเลื่อนลงมา
-        table_x, table_y = (-355, 530)
+        self.handle_events()
+        self.draw_scene()
 
-        # -------- RUN ---------
-        self.display.blit(self.background, (0, 0))  # วาดพื้นหลัง
+    # ฟังก์ชันวาดฉากd
+    def draw_scene(self):
+        self.display.blit(self.background, (0, 0))
+        self.display.blit(self.palette_bg, self.palette_pos)
 
-        # เคลื่อนชั้นวางและโต๊ะเข้ามาพร้อมกัน
-        move = True
-        while move:
-            if shelve_y < shelve_target_y:
-                shelve_y += shelve_speed
-            if table_x < -88:
-                table_x += shelve_speed  # ใช้ความเร็วเดียวกับชั้นวาง
-            else:
-                move = False
-                self.show_cakes = True  # เมื่อชั้นวางถึงจุดสุดท้าย ให้แสดงเค้ก
+        if self.shelve:
+            self.display.blit(self.shelve, self.shelve_pos)
 
-        self.display.blit(self.shelve, (shelve_x, shelve_y))
-        self.display.blit(self.table, (table_x, table_y))
-        
-        # แสดงข้อความ
-        text = self.font.render("Select Your Cake Base", True, BLACK)
-        self.display.blit(text, (self.screen_w // 2 - text.get_width() // 2, change(100)))
+        if self.back_button:
+            self.back_button.draw(self.display)
 
-        # แสดงฐานเค้กหลังจากชั้นวางถึงตำแหน่งสุดท้าย
-        if self.show_cakes:
-            for key, pos in self.final_positions.items():
-                if self.cake_options[key]:
-                    self.display.blit(self.cake_options[key], pos)
+        if self.reset_button:
             self.reset_button.draw(self.display)
+
+        if self.finish_button:
             self.finish_button.draw(self.display)
 
-        for key, pos in self.final_positions.items():
-            if self.cake_options[key]:
-                self.display.blit(self.cake_options[key], pos)
-        
-        if pygame.mouse.get_pressed()[0] == 1 and self.show_cakes:
-            x, y = pygame.mouse.get_pos()
-            for key, pos in self.final_positions.items():
-                cake_rect = pygame.Rect(pos[0], pos[1], 173, 173)
-                if cake_rect.collidepoint(x, y):
-                    self.selected_cake = key
+        for st in self.states:
+            icon_img = self.mode_icons[st]
+            if icon_img:
+                self.display.blit(icon_img, self.icon_positions[st])
 
-        # แสดงฐานเค้กที่ถูกเลือก
-        if self.selected_cake:
-            selected_cake_img = load_cake_image(self.selected_cake)
-            if selected_cake_img:
-                selected_cake_img = pygame.transform.smoothscale(selected_cake_img, (564, 564))
-                cake_x = 66
-                cake_y = 165
-                self.display.blit(selected_cake_img, (cake_x, cake_y))
+        for i, color in enumerate(self.color_names):
+            if color in self.color_icons:
+                self.display.blit(self.color_icons[color], self.color_positions[i])
+
+        if self.show_cakes:
+            types_for_this_state = self.state_options[self.current_mode]
+            for i, cake_type in enumerate(types_for_this_state):
+                if i < len(self.shelf_positions):
+                    thumb_path = f"Elements/decoration_elements/thumbnail/{self.current_mode}_{cake_type}.png"
+                    thumb_img = load_image(thumb_path, (167, 167))
+                    if thumb_img:
+                        self.display.blit(thumb_img, self.shelf_positions[i])
+
+        cake_draw_order = ["base", "topcream", "lowercream", "middlecream", "behindcream", "topping"]
+        # ปรับตำแหน่งของเค้กให้ x +100 (จาก 60 เป็น 160)
+        final_cake_x, final_cake_y = 62, 209
+
+        for st in cake_draw_order:
+            t = self.selected_type[st]
+            c = self.selected_color[st]
+            part_img = load_cake_part(st, t, c)
+            if part_img:
+                part_img = pygame.transform.smoothscale(part_img, (511, 511)) #509
+                self.display.blit(part_img, (final_cake_x, final_cake_y))
+
+    # ฟังก์ชันจัดการเหตุการณ์
+    def handle_events(self):
+        if self.reset_button.is_mouse_over():
+            for st in self.states:
+                self.selected_type[st] = None
+                self.selected_color[st] = None
+            selected_color_global = None
+            print("Reset selection")
 
         if self.finish_button.is_mouse_over():
-            self.gameStateManager.set_state('end')
-        if self.reset_button.is_mouse_over():
-            self.selected_cake = None
+            self.show_cakes = not self.show_cakes
+            self.gameStateManager.set_state('score_page')
 
-class End:
+        if self.back_button.is_mouse_over():
+            self.gameStateManager.set_state('start')
+
+        x, y = pygame.mouse.get_pos()
+
+        for st in self.states:
+            icon_img = self.mode_icons[st]
+            if icon_img:
+                icon_rect = pygame.Rect(self.icon_positions[st][0],
+                                        self.icon_positions[st][1],
+                                        icon_img.get_width(),
+                                        icon_img.get_height())
+                if icon_rect.collidepoint(x, y) and pygame.mouse.get_pressed()[0] == 1:
+                    self.current_mode = st
+                    print(f"Switched to sub-state: {self.current_mode}")
+                    break
+
+        for i, pos in enumerate(self.color_positions):
+            color_rect = pygame.Rect(pos[0], pos[1], 30, 30)
+            if color_rect.collidepoint(x, y) and pygame.mouse.get_pressed()[0] == 1:
+                selected_color_global = self.color_names[i]
+                self.selected_color[self.current_mode] = selected_color_global
+                print(f"Selected color for [{self.current_mode}]: {selected_color_global}")
+
+        if self.show_cakes:
+            types_for_this_state = self.state_options[self.current_mode]
+            for i, cake_type in enumerate(types_for_this_state):
+                if i < len(self.shelf_positions):
+                    rect = pygame.Rect(self.shelf_positions[i], (156, 156))
+                    if rect.collidepoint(x, y) and pygame.mouse.get_pressed()[0] == 1:
+                        self.selected_type[self.current_mode] = cake_type
+                        print(f"Selected type for [{self.current_mode}]: {cake_type}")
+
+# added
+class Score:
     # Constructor
     def __init__(self, display, gameStateManager, screen_w, screen_h):
         self.display = display
@@ -160,10 +267,79 @@ class End:
 
     def run(self):
         self.display.fill('green')  
-        font = pygame.font.Font(None, 80)
-        text = font.render("End page!", True, BLACK)
+        font = pygame.font.Font(None, 50)
+        text = font.render("Score Page! press e to go to the next page", True, BLACK)
         self.display.blit(text, (self.screen_w // 2 - text.get_width() // 2, self.screen_h // 2 - text.get_height() // 2))
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_e]:
+            self.gameStateManager.set_state('end')
+
+class End:
+    # Constructor
+    def __init__(self, display, gameStateManager, screen_w, screen_h):
+        self.display = display
+        self.gameStateManager = gameStateManager
+        self.screen_w = screen_w
+        self.screen_h = screen_h
+
+        self.background = pygame.image.load("Elements/background/endpage_bg.png")
+        self.background = pygame.transform.smoothscale(self.background, (self.screen_w, self.screen_h))
+
+        self.back_button = pygame.image.load("Elements/button/back_button2.png").convert_alpha()
+        self.back_button = button.Button(10, 618, self.back_button, 1 / RATIO_720p)
+
+        self.create_wish_btn = pygame.image.load("Elements/button/wish_button.png").convert_alpha()
+        self.create_wish_btn = button.Button(922, 612, self.create_wish_btn, 1 / RATIO_720p)
+
+        self.save_button = pygame.image.load("Elements/button/save_button.png").convert_alpha()
+        self.save_button = button.Button(1095, 638, self.save_button, 1 / RATIO_720p)
+
+    def run(self):
+        self.display.blit(self.background, (0,0))
+
+        self.back_button.draw(self.display)
+        self.create_wish_btn.draw(self.display)
+        self.save_button.draw(self.display)
+        if self.back_button.is_mouse_over():
+            self.gameStateManager.set_state('decoration')
+        if self.create_wish_btn.is_mouse_over():
+            self.gameStateManager.set_state('end_message')
+        if self.save_button.is_mouse_over():
+            self.gameStateManager.set_state('start')
+
+
+class Message:
+    # Constructor
+    def __init__(self, display, gameStateManager, screen_w, screen_h):
+        self.display = display
+        self.gameStateManager = gameStateManager
+        self.screen_w = screen_w
+        self.screen_h = screen_h
+
+        self.background = pygame.image.load("Elements/background/end_message_bg.png")
+        self.background = pygame.transform.smoothscale(self.background, (self.screen_w, self.screen_h))
+
+        self.back_button = pygame.image.load("Elements/button/back_button2.png").convert_alpha()
+        self.back_button = button.Button(10, 618, self.back_button, 1 / RATIO_720p)
+
+        self.save_button = pygame.image.load("Elements/button/save_button.png").convert_alpha()
+        self.save_button = button.Button(1095, 638, self.save_button, 1 / RATIO_720p)
+        
+        self.remove_button = pygame.image.load("Elements/button/remove_button.png").convert_alpha()
+        self.remove_button = button.Button(922, 612, self.remove_button, 1 / RATIO_720p)
+
+        self.open_message = False
+
+    def run(self):
+        self.display.blit(self.background, (0,0))
+
+        self.back_button.draw(self.display)
+        self.save_button.draw(self.display)
+        self.remove_button.draw(self.display)
+        if self.back_button.is_mouse_over():
+            self.gameStateManager.set_state('decoration')
+        if self.remove_button.is_mouse_over():
+            self.gameStateManager.set_state('end')
+        if self.save_button.is_mouse_over():
             self.gameStateManager.set_state('start')
