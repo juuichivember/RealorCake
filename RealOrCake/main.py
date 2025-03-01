@@ -36,9 +36,10 @@ class Game():
                        'end_message': self.message
                        }
 
-
     def run(self):
+        current_state = self.gameStateManager.get_state()
         while True:
+            mouse_pos = pygame.mouse.get_pos()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -48,8 +49,23 @@ class Game():
                     if event.key == pygame.K_ESCAPE:
                         pygame.quit()
                         sys.exit()
+                
+                if current_state == "end_message":
+                    self.gameStateManager.get_event().handle_event(event)
+                if self.gameStateManager.get_alert_active():
+                    print("in loop")
+                    if self.gameStateManager.alert.handle_event(event, mouse_pos):
+                        self.gameStateManager.set_alert_active(False)# alert is done
+                        print("alert set, active false")
 
-            self.states[self.gameStateManager.get_state()].run()
+            new_state = self.gameStateManager.get_state()
+
+            if new_state != current_state:
+                self.states[new_state].enter()
+                current_state = new_state
+            
+            self.states[new_state].run()
+
             
             pygame.display.update()
             self.clock.tick(FPS)
