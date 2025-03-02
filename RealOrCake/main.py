@@ -53,10 +53,8 @@ class Game():
                 if current_state == "end_message":
                     self.gameStateManager.get_event().handle_event(event)
                 if self.gameStateManager.get_alert_active():
-                    print("in loop")
                     if self.gameStateManager.alert.handle_event(event, mouse_pos):
                         self.gameStateManager.set_alert_active(False)# alert is done
-                        print("alert set, active false")
 
             new_state = self.gameStateManager.get_state()
 

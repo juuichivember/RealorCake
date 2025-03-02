@@ -51,6 +51,10 @@ class Start:
         self.play_button.draw(self.display)
         self.exit_button.draw(self.display)
 
+        self.cake = self.gameStateManager.get_cake()
+        if self.cake:
+            self.gameStateManager.reset()
+
         if self.play_button.is_mouse_over():
             self.gameStateManager.set_state('decoration') ########
         if self.exit_button.is_mouse_over():
@@ -67,11 +71,11 @@ class Start:
             if self.alert.result is not None:
                 if self.alert.result:
                     pygame.quit()
-                    print("OK was clicked. Image Saved")
+                    pass #print("OK was clicked. Image Saved")
                 else:
-                    print("Cancel was clicked. Image Cancel")
+                    pass #print("Cancel was clicked. Image Cancel")
             else:
-                print("No button clicked")
+                pass #print("No button clicked")
 
     def enter(self):
         pass
@@ -211,6 +215,7 @@ class Decoration:
             self.gameStateManager.set_state('end')
 
         if self.back_button.is_mouse_over():
+            self.cake.reset()
             self.gameStateManager.set_state('start')
 
         # Check for element state selection
@@ -336,11 +341,11 @@ class End:
                 if self.alert.result:
                     self.save_button.save_cake_img(self.display, 395, 186, 514, 417)
                     self.alert.result = False
-                    print("OK was clicked. Image Saved")
+                    pass #print("OK was clicked. Image Saved")
                 else:
-                    print("Cancel was clicked. Image Cancel")
+                    pass #print("Cancel was clicked. Image Cancel")
             else:
-                print("No button clicked")
+                pass #print("No button clicked")
 
         if self.back_button.is_mouse_over():
             self.gameStateManager.set_state('decoration')
@@ -349,6 +354,7 @@ class End:
         if self.save_button.is_mouse_over():
             self.alert_active = True
         if pygame.key.get_pressed()[pygame.K_e]:
+            self.gameStateManager.reset()
             self.gameStateManager.set_state('start')
 
     def enter(self):
@@ -405,11 +411,10 @@ class Message:
                 if self.alert.result:
                     self.save_button.save_cake_img(self.display, 185, 100, 900, 494)
                     self.alert.result = False
-                    print("OK was clicked. Image Saved")
                 else:
-                    print("Cancel was clicked. Image Cancel")
+                    pass #print("Cancel was clicked. Image Cancel")
             else:
-                print("No button clicked")
+                pass #print("No button clicked")
 
         if self.back_button.is_mouse_over():
             self.gameStateManager.set_state('decoration')
@@ -417,8 +422,8 @@ class Message:
             self.gameStateManager.set_state('end')
         if self.save_button.is_mouse_over():
             self.gameStateManager.set_alert_active(True)
-            print("save clicked")
         if pygame.key.get_pressed()[pygame.K_e]:
+            self.gameStateManager.reset()
             self.gameStateManager.set_state('start')
 
     def enter(self):
