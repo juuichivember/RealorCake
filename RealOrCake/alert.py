@@ -26,8 +26,8 @@ class Alert:
         self.rect = pygame.Rect(x, y, width, height)
         self.message = message
         self.font = font
-        self.ok_button = AlertButton(x + width // 4 - 50, y + height - 60, 100, 40, "OK", font, (100, 200, 100), (120, 220, 120))
-        self.cancel_button = AlertButton(x + 3 * width // 4 - 50, y + height - 60, 100, 40, "Cancel", font, (200, 100, 100), (220, 120, 120))
+        self.ok_button = AlertButton(x + width // 4 - 50, y + height - 60, 100, 40, "Yes", font, (100, 200, 100), (120, 220, 120))
+        self.cancel_button = AlertButton(x + 3 * width // 4 - 50, y + height - 60, 100, 40, "No", font, (200, 100, 100), (220, 120, 120))
         self.result = None  # Will be True for OK, False for Cancel
 
     def draw(self, screen):
