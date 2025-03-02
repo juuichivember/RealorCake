@@ -1,6 +1,6 @@
 import pygame
-FULLSCORE = 18
-PART_FULLSCORE = 3
+FULLSCORE = 12
+PART_FULLSCORE = 2
 
 class RandomGameScoreboard():
     def __init__(self, player_parts, random_parts):
@@ -14,26 +14,34 @@ class RandomGameScoreboard():
         self.score_description = {}
     
     def calculate_score(self):
-        score = 0
+        self.score = 0
         all_parts = ["base", "behindcream", "lowercream", "middlecream", "topcream", "topping"]
+
+        if len(self.player_parts) != len(all_parts):
+            for part in all_parts:
+                if part not in self.player_parts:
+                    self.player_parts[part] = ("none", "none")
+        myKeys = list(self.player_parts.keys())
+        myKeys.sort()
+        self.player_parts = {i: self.player_parts[i] for i in myKeys} # Sorted Dictionary
+
         for p_part, (p_type, p_color) in self.player_parts.items():
             for r_part, (r_type, r_color) in self.random_parts.items():
                 part_score = 0
                 if p_part == r_part:
-                    part_score += 1
                     if p_type == r_type:
                         part_score += 1
                     if p_color == r_color:
                         part_score += 1
                     self.score_description[r_part] = (part_score, PART_FULLSCORE)
-                score += part_score
-        for part in all_parts:
-            if part not in self.score_description:
-                self.score_description[part] = (0, PART_FULLSCORE)
-        self.score_description["Final score"] = (score, FULLSCORE)
-        print(self.score_description)
-        self.set_score(score)
-        return score
+                self.score += part_score
+        #for part in all_parts:
+            #if part not in self.random_parts:
+                #self.score_description[part] = (PART_FULLSCORE, PART_FULLSCORE)
+                #score += PART_FULLSCORE
+
+        self.score_description["Final score"] = (self.score, FULLSCORE)
+        return self.score
     
     def score_5star(self):
         percent = self.get_score() / FULLSCORE
