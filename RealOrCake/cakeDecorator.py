@@ -16,7 +16,8 @@ class CakeDecorator:
             if img:
                 self.decorations[part] = img
             else:
-                print(f"Failed to load decoration: {part} {type} in {color}")
+                pass
+                #print(f"Failed to load decoration: {part} {type} in {color}")
         else:
             # If the part doesn't exist, add it
             self.cake.add_part(part, type, color)
@@ -25,7 +26,8 @@ class CakeDecorator:
             if img:
                 self.decorations[part] = img
             else:
-                print(f"Failed to load decoration: {part} {type} in {color}")
+                pass
+                #print(f"Failed to load decoration: {part} {type} in {color}")
 
     def decorate(self, x, y, scale):
         for part, (part_type, part_color) in self.cake.parts.items():
@@ -34,5 +36,6 @@ class CakeDecorator:
                 img = pygame.transform.smoothscale(img, scale)
                 self.display.blit(img, (x, y))
             else:
-                print(f"Failed to load image for {part} ({part_type}, {part_color})")
+                pass
+                #print(f"Failed to load image for {part} ({part_type}, {part_color})")
 
