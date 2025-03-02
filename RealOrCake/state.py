@@ -378,6 +378,7 @@ class End:
         self.save_button = SaveImgButton(1095, 638, self.save_button, 1 / RATIO_720p)
 
         self.font = pygame.font.Font(None, 20)
+        self.open_message = False
         self.alert = Alert("Save the cake image?", self.font, self.screen_w / 2 - 200, self.screen_h / 2 - 100, 400, 200)
         self.alert_active = False
 
