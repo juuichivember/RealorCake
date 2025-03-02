@@ -40,3 +40,7 @@ class GameStateManager():
     
     def set_alert_active(self, alert_active):
         self.alert_active = alert_active
+
+    def reset(self):
+        self.cake.reset()
+        self.set_cake(None)
