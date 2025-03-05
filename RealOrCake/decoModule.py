@@ -28,5 +28,6 @@ def load_cake_part(state_name, cake_type, color):
         except Exception as e:
             print(f"Error loading cake part {path}: {e}")
     else:
-        print(f"File not found: {path}")
+        pass
+        #print(f"File not found: {path}")
     return None

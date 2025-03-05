@@ -13,4 +13,7 @@ class Cake:
         """Reset the cake to an empty state."""
         self.parts = {}
         print("Cake reset!")
+
+    def get_parts(self):
+        return self.parts
         
