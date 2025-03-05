@@ -1,2 +1,2 @@
 # RealorCake
-A repository of cake decoration game called 'Real or Cake?' (Temporary)
+A repository of a cake decoration game called 'Namkhing's Cake'
