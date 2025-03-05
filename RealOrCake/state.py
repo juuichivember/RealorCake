@@ -10,6 +10,8 @@ from cakeDecorator import CakeDecorator
 from letterTextBox import LetterTextBox
 from saveImgButton import SaveImgButton
 from alert import Alert
+from randomizeCake import RandomizeCake
+from randomGameScoreboard import RandomGameScoreboard
 
 # กำหนดสี
 WHITE = (255, 255, 255)
@@ -55,8 +57,12 @@ class Start:
         if self.cake:
             self.gameStateManager.reset()
 
+        self.random_cake = self.gameStateManager.get_randomcake()
+        if self.random_cake:
+            self.gameStateManager.reset_randomcake()
+
         if self.play_button.is_mouse_over():
-            self.gameStateManager.set_state('decoration') ########
+            self.gameStateManager.set_state('random_cake')
         if self.exit_button.is_mouse_over():
             self.alert_active = True
 
@@ -93,9 +99,16 @@ class RandomCake:
         self.background = pygame.image.load("Elements/background/randomCake_bg.png")
         self.background = pygame.transform.smoothscale(self.background, (self.screen_w, self.screen_h))
 
+        # Board
         self.board = pygame.image.load("Elements/other/board.png")
         self.board = pygame.transform.smoothscale(self.board, (change(self.board.get_width()), change(self.board.get_height())))  # ปรับขนาดชั้นวาง
         self.board_pos = (338, 108)
+
+        # Random Cake
+        self.rand_cake = RandomizeCake()
+        self.decorator = CakeDecorator(self.rand_cake, self.display)
+
+        # Timer
         self.timer = Timer(self.display)
         self.timer.start()
 
@@ -103,6 +116,13 @@ class RandomCake:
         self.display.blit(self.background, (0,0))
         self.display.blit(self.board, self.board_pos)
         self.timer.render()
+
+        # Random Cake
+        for part, (part_type, part_color) in self.rand_cake.parts.items():
+            self.decorator.add_decoration(part, part_type, part_color)
+
+        self.decorator.decorate(407, 117, (410, 410))
+        self.gameStateManager.set_randomcake(self.rand_cake)
 
         current_image = self.timer.get_current_image()
         image_pos = self.timer.get_pos()
@@ -115,6 +135,7 @@ class RandomCake:
             self.gameStateManager.set_state('decoration')
 
     def enter(self):
+        self.rand_cake.random_parts()
         self.timer.start()
 
 class Decoration:
@@ -171,6 +192,15 @@ class Decoration:
         self.cake = Cake()  # Create an empty cake object
         self.decorator = CakeDecorator(self.cake, self.display)
 
+        # Alert Finish
+        self.font = pygame.font.Font(None, 20)
+        self.alert = Alert("Finish the decoration?", self.font, self.screen_w / 2 - 200, self.screen_h / 2 - 100, 400, 200)
+        self.alert_active = False
+
+        # Alert Back
+        self.alert_b = Alert("Go back to Home page?", self.font, self.screen_w / 2 - 200, self.screen_h / 2 - 100, 400, 200)
+        self.alert_b_active = False
+
         # ตัวแปรอื่น ๆ
         self.selected_color_global = "grape"
 
@@ -204,7 +234,7 @@ class Decoration:
     # ฟังก์ชันจัดการเหตุการณ์
     def handle_events(self):
         self.gameStateManager.set_cake(self.cake)
-
+        
         if self.reset_button.is_mouse_over():
             self.cake.reset()  # Reset cake design
             self.selected_color_global = None
@@ -212,10 +242,12 @@ class Decoration:
             print("Reset selection")
 
         if self.finish_button.is_mouse_over():
-            self.gameStateManager.set_state('end')
+            self.gameStateManager.set_state('score_page')
 
         if self.back_button.is_mouse_over():
             self.cake.reset()
+            self.random_cake = self.gameStateManager.get_randomcake()
+            self.gameStateManager.reset_randomcake()
             self.gameStateManager.set_state('start')
 
         # Check for element state selection
@@ -266,9 +298,10 @@ class Decoration:
                 else:
                     print(f"Placing {item_type} in {current_state_name} with color {self.selected_color_global}")
                     self.decorator.add_decoration(current_state_name, item_type, self.selected_color_global)
+    
 
     def enter(self):
-        pass
+        self.element_manager.set_state('base')
 
 # added
 class Score:
@@ -279,14 +312,46 @@ class Score:
         self.screen_w = screen_w
         self.screen_h = screen_h
 
+        self.background = pygame.image.load("Elements/background/shop_background.png")
+        self.background = pygame.transform.smoothscale(self.background, (self.screen_w, self.screen_h))
+
+        self.board = pygame.image.load("Elements/other/board.png")
+        self.board = pygame.transform.smoothscale(self.board, (655, 520))  # ปรับขนาดชั้นวาง
+        self.board_pos = (54, 60) 
+
+        next_button_img = pygame.image.load("Elements/button/show_button.png")
+        self.next_button = button.Button(1052, 608, next_button_img, 1 / RATIO_720p)
+
+        self.font = pygame.font.Font('font/nura-jeni-thin.ttf', 50) #http://nurarada.lnwshop.com/product/316/ฟอนต์นูร่าเจนี่-โหลดฟรีที่รายละเอียดสินค้า
+        self.font.set_bold(True)
+
     def run(self):
-        self.display.fill('green')  
-        font = pygame.font.Font(None, 50)
-        text = font.render("Score Page! press e to go to the next page", True, BLACK)
-        self.display.blit(text, (self.screen_w // 2 - text.get_width() // 2, self.screen_h // 2 - text.get_height() // 2))
+        self.display.blit(self.background, (0,0))
+        self.display.blit(self.board, self.board_pos)
+        self.next_button.draw(self.display)
+
+        self.player_cake = self.gameStateManager.get_cake()
+        self.random_cake = self.gameStateManager.get_randomcake()
+
+        self.scoreboard = RandomGameScoreboard(self.player_cake.get_parts(), self.random_cake.get_parts())
+        self.scoreboard.calculate_score()
+        star = self.scoreboard.score_5star()
+        self.star_text = self.font.render(str(star), True, (0, 0, 0))
+
+        self.player_decorator = CakeDecorator(self.player_cake, self.display)
+        self.random_decorator = CakeDecorator(self.random_cake, self.display)
+
+        self.player_decorator.decorate(736, 104, (513, 513))
+        self.random_decorator.decorate(270, 320, (224, 224))
+
+        self.display.blit(self.star_text, (382 - self.star_text.get_width() / 2, 72))
+
+        self.scoreboard.render(self.display)
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_e]:
+            self.gameStateManager.set_state('end')
+        if self.next_button.is_mouse_over():
             self.gameStateManager.set_state('end')
 
     def enter(self):
@@ -348,7 +413,7 @@ class End:
                 pass #print("No button clicked")
 
         if self.back_button.is_mouse_over():
-            self.gameStateManager.set_state('decoration')
+            self.gameStateManager.set_state('score_page')
         if self.create_wish_btn.is_mouse_over():
             self.gameStateManager.set_state('end_message')
         if self.save_button.is_mouse_over():
@@ -400,8 +465,7 @@ class Message:
 
         self.cake = self.gameStateManager.get_cake()
         self.decorator = CakeDecorator(self.cake, self.display)
-        if self.decorator.decorate(371, 181, (457, 457)):
-            print("pass")
+        self.decorator.decorate(371, 181, (457, 457))
 
         self.gameStateManager.set_alert(self.alert)
         if self.gameStateManager.get_alert_active():
@@ -417,7 +481,7 @@ class Message:
                 pass #print("No button clicked")
 
         if self.back_button.is_mouse_over():
-            self.gameStateManager.set_state('decoration')
+            self.gameStateManager.set_state('score_page')
         if self.remove_button.is_mouse_over():
             self.gameStateManager.set_state('end')
         if self.save_button.is_mouse_over():
