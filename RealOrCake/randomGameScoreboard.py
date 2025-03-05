@@ -44,8 +44,8 @@ class RandomGameScoreboard():
         return self.score
     
     def score_5star(self):
-        percent = self.get_score() / FULLSCORE
-        return round(percent * 5, 1)
+        star = round((self.get_score() / FULLSCORE) * 5)
+        return star
 
     def set_score(self, score):
         self.score = score
@@ -65,8 +65,8 @@ class RandomGameScoreboard():
         return label_text, score_text
     
     def get_des_to_render(self):
-        l_position = 174, 126
-        s_position = 467, 126
+        l_position = 244, 150
+        s_position = 520, 150
         label_text, score_text = self.format_text()
         label_obj = []
         score_obj = []
