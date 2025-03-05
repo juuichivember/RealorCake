@@ -1,4 +1,4 @@
-# RealorCake
+# RealorCake Add Sound
 A repository of a cake decoration game called 'Namkhing's Cake'
 
 เพื่อไม่ให้สับสน ไม่ต้อง merge/pust ขออัพโหลดแค่ไฟล์ที่มีการเปลี่ยนแปลง โดยให้อัยย์ก็อปแค่โค้ด main กับ element จาก branch นี้ได้เลย ส่วน folder Sound ให้เอาไปเก็บใน folder Element
