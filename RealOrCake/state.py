@@ -20,14 +20,16 @@ RATIO_720p = 1.5 # หาร 1080p ด้วย 1.5
 
 # Concrete State
 # ทุก State class ต้องมี function อันเดียวกันทั้งหมด
-# concern: ตอนนี้ state ยังไม่จำข้อมูล คือถ้าย้อนกลับจะรีเซ็ทหน้าใหม่ ต้องเพิ่มวิธีเก็บข้อมูลโดยเฉพาะในหน้า decoration
+# (เราเพิ่ม parameter sound_manager เข้าไปโดยไม่ยุ่งกับโค้ดเดิมมากนัก)
+
 class Start:
     # Constructor
-    def __init__(self, display, gameStateManager, screen_w, screen_h):
+    def __init__(self, display, gameStateManager, screen_w, screen_h, sound_manager=None):
         self.display = display
         self.gameStateManager = gameStateManager
         self.screen_w = screen_w
         self.screen_h = screen_h
+        self.sound_manager = sound_manager  # <-- เพิ่ม
 
         self.background = pygame.image.load("Elements/background/homepage_bg.png")
         self.background = pygame.transform.smoothscale(self.background, (self.screen_w, self.screen_h))
@@ -62,6 +64,9 @@ class Start:
             self.gameStateManager.reset_randomcake()
 
         if self.play_button.is_mouse_over():
+            # รีเซ็ต flag ก่อนเล่นเสียงเฉพาะของปุ่ม start
+            self.click_sound_played = False
+            self.sound_manager.play("start_click")
             self.gameStateManager.set_state('random_cake')
         if self.exit_button.is_mouse_over():
             self.alert_active = True
@@ -70,30 +75,35 @@ class Start:
         for event in pygame.event.get():
             if self.alert_active:
                 if self.alert.handle_event(event, mouse_pos):
-                    self.alert_active = False # alert is done
+                    self.alert_active = False  # alert is done
         if self.alert_active:
             self.alert.draw(self.display)
         else:
             if self.alert.result is not None:
                 if self.alert.result:
                     pygame.quit()
-                    pass #print("OK was clicked. Image Saved")
+                    pass  #print("OK was clicked. Image Saved")
                 else:
-                    pass #print("Cancel was clicked. Image Cancel")
+                    pass  #print("Cancel was clicked. Image Cancel")
             else:
-                pass #print("No button clicked")
+                pass  #print("No button clicked")
 
     def enter(self):
-        pass
+        # เล่นเพลง background หน้า start
+        pygame.mixer.music.stop()
+        pygame.mixer.music.load("Elements/Sound/IntroPage.mp3")
+        pygame.mixer.music.set_volume(0.8)  # ตั้งความดังที่ 80%
+        pygame.mixer.music.play(-1)
 
 # added
 class RandomCake:
     # Constructor
-    def __init__(self, display, gameStateManager, screen_w, screen_h):
+    def __init__(self, display, gameStateManager, screen_w, screen_h, sound_manager=None):
         self.display = display
         self.gameStateManager = gameStateManager
         self.screen_w = screen_w
         self.screen_h = screen_h
+        self.sound_manager = sound_manager  # เพิ่ม
 
         # โหลดภาพพื้นหลัง
         self.background = pygame.image.load("Elements/background/randomCake_bg.png")
@@ -135,16 +145,21 @@ class RandomCake:
             self.gameStateManager.set_state('decoration')
 
     def enter(self):
+        pygame.mixer.music.stop()
+        pygame.mixer.music.load("Elements/Sound/RandomPage.mp3")
+        pygame.mixer.music.set_volume(0.8)  # ตั้งความดังที่ 80%
+        pygame.mixer.music.play(-1)
         self.rand_cake.random_parts()
         self.timer.start()
 
 class Decoration:
     # Constructor
-    def __init__(self, display, gameStateManager, screen_w, screen_h):
+    def __init__(self, display, gameStateManager, screen_w, screen_h, sound_manager=None):
         self.display = display
         self.gameStateManager = gameStateManager
         self.screen_w = screen_w
         self.screen_h = screen_h
+        self.sound_manager = sound_manager  # เพิ่ม
 
         # โหลดภาพพื้นหลัง
         self.background = pygame.image.load("Elements/background/shop_background.png")
@@ -208,7 +223,7 @@ class Decoration:
         self.handle_events()
         self.draw_scene()
 
-    # ฟังก์ชันวาดฉากd
+    # ฟังก์ชันวาดฉาก
     def draw_scene(self):
         self.display.blit(self.background, (0, 0))
         self.display.blit(self.shelve, self.shelve_pos)
@@ -230,7 +245,6 @@ class Decoration:
 
         self.decorator.decorate(62, 209, (511, 511))
 
-
     # ฟังก์ชันจัดการเหตุการณ์
     def handle_events(self):
         self.gameStateManager.set_cake(self.cake)
@@ -240,6 +254,8 @@ class Decoration:
             self.selected_color_global = None
             self.decorator.decorations.clear()
             print("Reset selection")
+            if self.sound_manager:
+                self.sound_manager.play("reset_cake")
 
         if self.finish_button.is_mouse_over():
             self.gameStateManager.set_state('score_page')
@@ -251,7 +267,7 @@ class Decoration:
             self.gameStateManager.set_state('start')
 
         # Check for element state selection
-        for button, state_name in [
+        for button_item, state_name in [
             (self.base_button, "base"),
             (self.behindcream_button, "behindcream"),
             (self.lowercream_button, "lowercream"),
@@ -259,7 +275,7 @@ class Decoration:
             (self.topcream_button, "topcream"),
             (self.topping_button, "topping"),
         ]:
-            if button.is_mouse_over():
+            if button_item.is_mouse_over():
                 self.element_manager.set_state(state_name)
 
         shelf_positions = [
@@ -298,19 +314,25 @@ class Decoration:
                 else:
                     print(f"Placing {item_type} in {current_state_name} with color {self.selected_color_global}")
                     self.decorator.add_decoration(current_state_name, item_type, self.selected_color_global)
+                    if self.sound_manager:
+                        self.sound_manager.play("apply_frosting")
     
-
     def enter(self):
+        pygame.mixer.music.stop()
+        pygame.mixer.music.load("Elements/Sound/InGamePage.mp3")
+        pygame.mixer.music.set_volume(0.8)  # ตั้งความดังที่ 80%
+        pygame.mixer.music.play(-1)
         self.element_manager.set_state('base')
 
 # added
 class Score:
     # Constructor
-    def __init__(self, display, gameStateManager, screen_w, screen_h):
+    def __init__(self, display, gameStateManager, screen_w, screen_h, sound_manager=None):
         self.display = display
         self.gameStateManager = gameStateManager
         self.screen_w = screen_w
         self.screen_h = screen_h
+        self.sound_manager = sound_manager  # เพิ่ม
 
         self.background_win = pygame.image.load("Elements/background/score_win_bg.png")
         self.background_win = pygame.transform.smoothscale(self.background_win, (self.screen_w, self.screen_h))
@@ -326,6 +348,7 @@ class Score:
         self.next_button = button.Button(1097, 624, next_button_img, 1 / RATIO_720p)
 
         self.font = pygame.font.Font('font/nura-jeni-thin.ttf', 50) #http://nurarada.lnwshop.com/product/316/ฟอนต์นูร่าเจนี่-โหลดฟรีที่รายละเอียดสินค้า
+        self.music_loaded = False # flag สำหรับการโหลดเพลง
 
     def run(self):
         self.player_cake = self.gameStateManager.get_cake()
@@ -333,6 +356,17 @@ class Score:
         self.scoreboard = RandomGameScoreboard(self.player_cake.get_parts(), self.random_cake.get_parts())
         self.scoreboard.calculate_score()
         star = self.scoreboard.score_5star()
+
+        if not self.music_loaded:
+            pygame.mixer.music.stop()
+            if star > 2:
+                pygame.mixer.music.load("Elements/Sound/ShowScorePage[Win].mp3")
+                pygame.mixer.music.set_volume(1)  # ตั้งความดังที่ 100%
+            else:
+                pygame.mixer.music.load("Elements/Sound/ShowScorePage[Lose].mp3")
+                pygame.mixer.music.set_volume(1)  # ตั้งความดังที่ 100%
+            pygame.mixer.music.play(-1)
+            self.music_loaded = True
 
         if star > 2:
             self.display.blit(self.background_win, (0,0))
@@ -360,15 +394,17 @@ class Score:
             self.gameStateManager.set_state('end')
 
     def enter(self):
-        pass
+        # รีเซ็ต flag เมื่อเข้าสู่ state Score ใหม่
+        self.music_loaded = False
 
 class End:
     # Constructor
-    def __init__(self, display, gameStateManager, screen_w, screen_h):
+    def __init__(self, display, gameStateManager, screen_w, screen_h, sound_manager=None):
         self.display = display
         self.gameStateManager = gameStateManager
         self.screen_w = screen_w
         self.screen_h = screen_h
+        self.sound_manager = sound_manager  # เพิ่ม
 
         self.background = pygame.image.load("Elements/background/endpage_bg.png")
         self.background = pygame.transform.smoothscale(self.background, (self.screen_w, self.screen_h))
@@ -398,7 +434,6 @@ class End:
         self.save_button.draw(self.display)
         self.home_button.draw(self.display)
 
-                
         self.cake = self.gameStateManager.get_cake()
         self.decorator = CakeDecorator(self.cake, self.display)
         self.decorator.decorate(424, 186, (457, 457))
@@ -407,7 +442,7 @@ class End:
         for event in pygame.event.get():
             if self.alert_active:
                 if self.alert.handle_event(event, mouse_pos):
-                    self.alert_active = False # alert is done
+                    self.alert_active = False  # alert is done
         if self.alert_active:
             self.alert.draw(self.display)
         else:
@@ -415,11 +450,11 @@ class End:
                 if self.alert.result:
                     self.save_button.save_cake_img(self.display, 395, 186, 514, 417)
                     self.alert.result = False
-                    pass #print("OK was clicked. Image Saved")
+                    pass  #print("OK was clicked. Image Saved")
                 else:
-                    pass #print("Cancel was clicked. Image Cancel")
+                    pass  #print("Cancel was clicked. Image Cancel")
             else:
-                pass #print("No button clicked")
+                pass  #print("No button clicked")
 
         if self.back_button.is_mouse_over():
             self.gameStateManager.set_state('score_page')
@@ -432,16 +467,19 @@ class End:
             self.gameStateManager.set_state('start')
 
     def enter(self):
-        pass
-
+        pygame.mixer.music.stop()
+        pygame.mixer.music.load("Elements/Sound/EndPage.mp3")
+        pygame.mixer.music.set_volume(0.8)  # ตั้งความดังที่ 80%
+        pygame.mixer.music.play(-1)
 
 class Message:
     # Constructor
-    def __init__(self, display, gameStateManager, screen_w, screen_h):
+    def __init__(self, display, gameStateManager, screen_w, screen_h, sound_manager=None):
         self.display = display
         self.gameStateManager = gameStateManager
         self.screen_w = screen_w
         self.screen_h = screen_h
+        self.sound_manager = sound_manager  # เพิ่ม
 
         self.background = pygame.image.load("Elements/background/end_message_bg.png")
         self.background = pygame.transform.smoothscale(self.background, (self.screen_w, self.screen_h))
@@ -489,9 +527,9 @@ class Message:
                     self.save_button.save_cake_img(self.display, 185, 100, 900, 494)
                     self.alert.result = False
                 else:
-                    pass #print("Cancel was clicked. Image Cancel")
+                    pass  #print("Cancel was clicked. Image Cancel")
             else:
-                pass #print("No button clicked")
+                pass  #print("No button clicked")
 
         if self.back_button.is_mouse_over():
             self.gameStateManager.set_state('score_page')
