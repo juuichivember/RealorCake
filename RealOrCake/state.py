@@ -312,39 +312,44 @@ class Score:
         self.screen_w = screen_w
         self.screen_h = screen_h
 
-        self.background = pygame.image.load("Elements/background/shop_background.png")
-        self.background = pygame.transform.smoothscale(self.background, (self.screen_w, self.screen_h))
+        self.background_win = pygame.image.load("Elements/background/score_win_bg.png")
+        self.background_win = pygame.transform.smoothscale(self.background_win, (self.screen_w, self.screen_h))
 
-        self.board = pygame.image.load("Elements/other/board.png")
-        self.board = pygame.transform.smoothscale(self.board, (655, 520))  # ปรับขนาดชั้นวาง
-        self.board_pos = (54, 60) 
+        self.background_lose = pygame.image.load("Elements/background/score_lose_bg.png")
+        self.background_lose = pygame.transform.smoothscale(self.background_lose, (self.screen_w, self.screen_h))
 
-        next_button_img = pygame.image.load("Elements/button/show_button.png")
-        self.next_button = button.Button(1052, 608, next_button_img, 1 / RATIO_720p)
+        self.board = pygame.image.load("Elements/other/scoreboard.png")
+        self.board = pygame.transform.smoothscale(self.board, (562, 548))  # ปรับขนาดชั้นวาง
+        self.board_pos = (171, 17) 
+
+        next_button_img = pygame.image.load("Elements/button/next_button.png")
+        self.next_button = button.Button(1097, 624, next_button_img, 1 / RATIO_720p)
 
         self.font = pygame.font.Font('font/nura-jeni-thin.ttf', 50) #http://nurarada.lnwshop.com/product/316/ฟอนต์นูร่าเจนี่-โหลดฟรีที่รายละเอียดสินค้า
-        self.font.set_bold(True)
 
     def run(self):
-        self.display.blit(self.background, (0,0))
-        self.display.blit(self.board, self.board_pos)
-        self.next_button.draw(self.display)
-
         self.player_cake = self.gameStateManager.get_cake()
         self.random_cake = self.gameStateManager.get_randomcake()
-
         self.scoreboard = RandomGameScoreboard(self.player_cake.get_parts(), self.random_cake.get_parts())
         self.scoreboard.calculate_score()
         star = self.scoreboard.score_5star()
+
+        if star > 2:
+            self.display.blit(self.background_win, (0,0))
+        else:
+            self.display.blit(self.background_lose, (0,0))
+        self.display.blit(self.board, self.board_pos)
+        self.next_button.draw(self.display)
+
         self.star_text = self.font.render(str(star), True, (0, 0, 0))
 
         self.player_decorator = CakeDecorator(self.player_cake, self.display)
         self.random_decorator = CakeDecorator(self.random_cake, self.display)
 
-        self.player_decorator.decorate(736, 104, (513, 513))
-        self.random_decorator.decorate(270, 320, (224, 224))
+        self.player_decorator.decorate(617, 369, (310, 310))
+        self.random_decorator.decorate(357, 357, (170, 170))
 
-        self.display.blit(self.star_text, (382 - self.star_text.get_width() / 2, 72))
+        self.display.blit(self.star_text, (428, 50))
 
         self.scoreboard.render(self.display)
 
@@ -377,6 +382,9 @@ class End:
         self.save_button = pygame.image.load("Elements/button/save_button.png").convert_alpha()
         self.save_button = SaveImgButton(1095, 638, self.save_button, 1 / RATIO_720p)
 
+        self.home_button = pygame.image.load("Elements/button/home_button.png").convert_alpha()
+        self.home_button = button.Button(1091, 0, self.home_button, 1 / RATIO_720p)
+
         self.font = pygame.font.Font(None, 20)
         self.open_message = False
         self.alert = Alert("Save the cake image?", self.font, self.screen_w / 2 - 200, self.screen_h / 2 - 100, 400, 200)
@@ -388,6 +396,7 @@ class End:
         self.back_button.draw(self.display)
         self.create_wish_btn.draw(self.display)
         self.save_button.draw(self.display)
+        self.home_button.draw(self.display)
 
                 
         self.cake = self.gameStateManager.get_cake()
@@ -418,7 +427,7 @@ class End:
             self.gameStateManager.set_state('end_message')
         if self.save_button.is_mouse_over():
             self.alert_active = True
-        if pygame.key.get_pressed()[pygame.K_e]:
+        if self.home_button.is_mouse_over():
             self.gameStateManager.reset()
             self.gameStateManager.set_state('start')
 
@@ -446,6 +455,9 @@ class Message:
         self.remove_button = pygame.image.load("Elements/button/remove_button.png").convert_alpha()
         self.remove_button = button.Button(922, 612, self.remove_button, 1 / RATIO_720p)
 
+        self.home_button = pygame.image.load("Elements/button/home_button.png").convert_alpha()
+        self.home_button = button.Button(1091, 0, self.home_button, 1 / RATIO_720p)
+
         self.text_box = LetterTextBox(706, 181, 300, 270)
 
         self.font = pygame.font.Font(None, 20)
@@ -459,6 +471,7 @@ class Message:
         self.save_button.draw(self.display)
         self.remove_button.draw(self.display)
         self.text_box.draw(self.display)
+        self.home_button.draw(self.display)
 
         self.gameStateManager.set_event(self.text_box)
         self.text_box.update()
@@ -486,7 +499,7 @@ class Message:
             self.gameStateManager.set_state('end')
         if self.save_button.is_mouse_over():
             self.gameStateManager.set_alert_active(True)
-        if pygame.key.get_pressed()[pygame.K_e]:
+        if self.home_button.is_mouse_over():
             self.gameStateManager.reset()
             self.gameStateManager.set_state('start')
 
