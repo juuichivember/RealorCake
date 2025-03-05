@@ -4,7 +4,7 @@ class LetterTextBox():
     def __init__(self, x, y, width, height):
         self.rect = pygame.Rect(x, y, width, height)
         self.font = pygame.font.Font('font/nura-wat-thin.ttf', 36) #http://nurarada.lnwshop.com/product/329/ฟอนต์นูร่าหวัด-โหลดฟรีที่รายละเอียดสินค้า
-        self.text = "To: (Press e go to home(ชั่วคราว))"
+        self.text = "To: "
         self.lines = [self.text]
         self.text_color = (0, 0, 0)
         self.bg_color = (255, 255, 255)
