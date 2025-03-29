@@ -23,7 +23,6 @@ class SaveImgButton(Button):
         try:
             filenames = os.listdir(directory)
         except FileNotFoundError:
-            os.makedirs(directory)
             return None  # Return None if directory not found
 
         numbers = []
