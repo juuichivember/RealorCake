@@ -1,14 +1,17 @@
-from decoModule import load_image
-import pygame
+from decoModule import load_image, get_base_path
+import pygame, os
 from screen import change_ratio_1080_to_720 as change
 import button
 
 RATIO_720p = 1.5
 
+# แถบสี
+
 class ColorPalette():
     def __init__(self):
-        self.palette_bg = load_image("Elements/decoration_elements/Color/painttray.png")
-        self.palette_bg = pygame.transform.smoothscale(self.palette_bg, (change(self.palette_bg.get_width()), change(self.palette_bg.get_height()))) 
+        self.base_path = get_base_path()
+        self.palette_bg = pygame.image.load(os.path.join(self.base_path, "assets", "decoration_elements", "Color", "painttray.png"))
+        self.palette_bg = pygame.transform.smoothscale(self.palette_bg, (change(self.palette_bg.get_width()), change(self.palette_bg.get_height()))).convert_alpha()
         self.palette_pos = (613, 114) 
 
         self.color_names = [
@@ -27,12 +30,14 @@ class ColorPalette():
 
         self.color_icons = {}
         for i, color in enumerate(self.color_names):
-            img = load_image(f"Elements/decoration_elements/Color/{color}.png", (44, 42), smooth=False)
+            img = pygame.image.load(os.path.join(self.base_path, "assets", "decoration_elements", "Color", f"{color}.png"))
+            img = pygame.transform.scale(img, (44, 42)).convert_alpha()
             color_button = button.Button(self.color_positions[i][0], self.color_positions[i][1], img, 1)
             if color_button: 
                 self.color_icons[color] = color_button
 
     def draw(self, screen):
+        # ใส่ใน run, แสดงรูปถาดและสี
         self.display = screen
 
         self.display.blit(self.palette_bg, self.palette_pos)
@@ -40,6 +45,7 @@ class ColorPalette():
             self.color_icons[color].draw(self.display)
 
     def get_color(self):
+        #  ใส่ใน run
         for color in self.color_names:
             if self.color_icons[color].is_mouse_over():
                 return color
