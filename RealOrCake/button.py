@@ -1,5 +1,7 @@
 import pygame
 
+# สร้าง Object ปุ่มกด
+
 class Button():
     def __init__(self, x, y, image, scale, smooth=True):
         # constructor
