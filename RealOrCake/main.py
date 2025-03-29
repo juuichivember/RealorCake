@@ -1,11 +1,8 @@
 import pygame
 import sys
-from state import Start, RandomCake, Decoration, Score, End, Message
+from state import Start, Decoration, End, Message
 from stateManager import *
 from screen import set_screen
-
-# 1) import SoundManager
-from soundManager import SoundManager
 
 #SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
 FPS = 60
@@ -15,11 +12,6 @@ FPS = 60
 class Game():
     def __init__(self):
         pygame.init()
-        pygame.mixer.init()  # เริ่มต้นระบบเสียง
-
-        # 2) สร้างออบเจ็กต์ SoundManager
-        self.sound_manager = SoundManager()
-
         screen_size = pygame.display.get_desktop_sizes()
         self.screen_w, self.screen_h = set_screen(screen_size[0])
 
@@ -29,26 +21,16 @@ class Game():
 
         # Call Context's and Concrete State's Constructor
         self.gameStateManager = GameStateManager('start')
+        self.start = Start(self.screen, self.gameStateManager, self.screen_w, self.screen_h)
+        self.decoration = Decoration(self.screen, self.gameStateManager, self.screen_w, self.screen_h)
+        self.end = End(self.screen, self.gameStateManager, self.screen_w, self.screen_h)
+        self.message = Message(self.screen, self.gameStateManager, self.screen_w, self.screen_h)
 
-        # 3) ส่ง sound_manager เข้าไปใน State แต่ละตัว
-        self.start = Start(self.screen, self.gameStateManager, self.screen_w, self.screen_h, self.sound_manager)
-        self.random_cake = RandomCake(self.screen, self.gameStateManager, self.screen_w, self.screen_h, self.sound_manager)
-        self.decoration = Decoration(self.screen, self.gameStateManager, self.screen_w, self.screen_h, self.sound_manager)
-        self.score_page = Score(self.screen, self.gameStateManager, self.screen_w, self.screen_h, self.sound_manager)
-        self.end = End(self.screen, self.gameStateManager, self.screen_w, self.screen_h, self.sound_manager)
-        self.message = Message(self.screen, self.gameStateManager, self.screen_w, self.screen_h, self.sound_manager)
-
-        self.states = {
-            'start': self.start, 
-            'random_cake': self.random_cake,
-            'decoration': self.decoration,
-            'score_page': self.score_page,
-            'end': self.end,
-            'end_message': self.message
-        }
-        self.start.enter()
-        # เพิ่ม flag สำหรับตรวจสอบการกด mouse click
-        self.click_sound_played = False
+        self.states = {'start': self.start, 
+                       'decoration': self.decoration,
+                       'end': self.end,
+                       'end_message': self.message
+                       }
 
     def run(self):
         current_state = self.gameStateManager.get_state()
@@ -59,29 +41,16 @@ class Game():
                     pygame.quit()
                     sys.exit()
 
-                if event.type == pygame.KEYDOWN:
+                elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         pygame.quit()
                         sys.exit()
-
-                # ตรวจสอบการกดปุ่ม mouse
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    # ถ้าไม่ได้กดในพื้นที่ของปุ่ม start (หรือปุ่มใดๆ ที่มีเสียงเฉพาะ) ให้เล่น normal_click
-                    # ตัวอย่าง: สมมติว่าคุณตรวจสอบตำแหน่งของ play_button (หรือสามารถให้แต่ละปุ่มจัดการเอง)
-                    if not self.start.play_button.rect.collidepoint(event.pos):
-                        if not self.click_sound_played:
-                            self.sound_manager.play("normal_click")
-                            self.click_sound_played = True
-                        
-                if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-                    # รีเซ็ต flag เมื่อปล่อยปุ่ม
-                    self.click_sound_played = False
                 
                 if current_state == "end_message":
                     self.gameStateManager.get_event().handle_event(event)
                 if self.gameStateManager.get_alert_active():
                     if self.gameStateManager.alert.handle_event(event, mouse_pos):
-                        self.gameStateManager.set_alert_active(False)  # alert is done
+                        self.gameStateManager.set_alert_active(False)# alert is done
 
             new_state = self.gameStateManager.get_state()
 
@@ -91,6 +60,7 @@ class Game():
             
             self.states[new_state].run()
 
+            
             pygame.display.update()
             self.clock.tick(FPS)
 
