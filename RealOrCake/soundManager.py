@@ -1,20 +1,22 @@
 # soundManager.py
-import pygame
+import pygame, os
+from decoModule import get_base_path
 
 class SoundManager:
     def __init__(self):
         # โหลดเสียงทั้งหมดที่ต้องการใช้
+        base_path = get_base_path()
         self.sounds = {
-            "apply_frosting": pygame.mixer.Sound("Elements/Sound/ApplyFrosting.mp3"),
-            "end_page": pygame.mixer.Sound("Elements/Sound/EndPage.mp3"),
-            "in_game": pygame.mixer.Sound("Elements/Sound/InGamePage.mp3"),
-            "intro": pygame.mixer.Sound("Elements/Sound/IntroPage.mp3"),
-            "normal_click": pygame.mixer.Sound("Elements/Sound/NormalClick.mp3"),
-            "random_page": pygame.mixer.Sound("Elements/Sound/RandomPage.mp3"),
-            "reset_cake": pygame.mixer.Sound("Elements/Sound/ResetCake.mp3"),
-            "score_lose": pygame.mixer.Sound("Elements/Sound/ShowScorePage[Lose].mp3"),
-            "score_win": pygame.mixer.Sound("Elements/Sound/ShowScorePage[Win].mp3"),
-            "start_click": pygame.mixer.Sound("Elements/Sound/StartClick.mp3")
+            "apply_frosting": pygame.mixer.Sound(os.path.join(base_path, "assets", "Sound", "ApplyFrosting.mp3")),
+            "end_page": pygame.mixer.Sound(os.path.join(base_path, "assets", "Sound", "EndPage.mp3")),
+            "in_game": pygame.mixer.Sound(os.path.join(base_path, "assets", "Sound", "InGamePage.mp3")),
+            "intro": pygame.mixer.Sound(os.path.join(base_path, "assets", "Sound", "IntroPage.mp3")),
+            "normal_click": pygame.mixer.Sound(os.path.join(base_path, "assets", "Sound", "NormalClick.mp3")),
+            "random_page": pygame.mixer.Sound(os.path.join(base_path, "assets", "Sound", "RandomPage.mp3")),
+            "reset_cake": pygame.mixer.Sound(os.path.join(base_path, "assets", "Sound", "ResetCake.mp3")),
+            "score_lose": pygame.mixer.Sound(os.path.join(base_path, "assets", "Sound", "ShowScorePage[Lose].mp3")),
+            "score_win": pygame.mixer.Sound(os.path.join(base_path, "assets", "Sound", "ShowScorePage[Win].mp3")),
+            "start_click": pygame.mixer.Sound(os.path.join(base_path, "assets", "Sound", "StartClick.mp3"))
         }
 
     def play(self, key):

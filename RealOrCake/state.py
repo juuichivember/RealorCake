@@ -1,6 +1,6 @@
-import pygame
+import pygame, os
 import button
-from decoModule import load_image, load_cake_part
+from decoModule import load_image, load_cake_part, get_base_path
 from screen import change_ratio_1080_to_720 as change
 from timer import Timer
 from elementStateManager import ElementStateManager
@@ -17,6 +17,7 @@ from randomGameScoreboard import RandomGameScoreboard
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RATIO_720p = 1.5 # หาร 1080p ด้วย 1.5
+BASE_PATH = get_base_path()
 
 # Concrete State
 # ทุก State class ต้องมี function อันเดียวกันทั้งหมด
@@ -31,16 +32,15 @@ class Start:
         self.screen_h = screen_h
         self.sound_manager = sound_manager  # <-- เพิ่ม
 
-        self.background = pygame.image.load("Elements/background/homepage_bg.png")
-        self.background = pygame.transform.smoothscale(self.background, (self.screen_w, self.screen_h))
+        self.background = load_image("background", "homepage_bg.png", (self.screen_w, self.screen_h))
 
-        self.logo = pygame.image.load("Elements/other/logo.png")
+        self.logo = load_image("other", "logo.png")
         logo_w, logo_h = self.logo.get_size()
         self.logo = pygame.transform.smoothscale(self.logo, (logo_w / RATIO_720p, logo_h / RATIO_720p))
 
-        self.play_button = pygame.image.load("Elements/button/play_button.png").convert_alpha()
+        self.play_button = load_image("button", "play_button.png")
         self.play_button = button.Button(165, 311, self.play_button, 1 / RATIO_720p)
-        self.exit_button = pygame.image.load("Elements/button/exit_button.png").convert_alpha()
+        self.exit_button = load_image("button", "exit_button.png")
         self.exit_button = button.Button(165, 423, self.exit_button, 1 / RATIO_720p)
 
         self.font = pygame.font.Font(None, 20)
@@ -91,7 +91,7 @@ class Start:
     def enter(self):
         # เล่นเพลง background หน้า start
         pygame.mixer.music.stop()
-        pygame.mixer.music.load("Elements/Sound/IntroPage.mp3")
+        pygame.mixer.music.load(os.path.join(BASE_PATH, "assets", "Sound", "IntroPage.mp3"))
         pygame.mixer.music.set_volume(0.8)  # ตั้งความดังที่ 80%
         pygame.mixer.music.play(-1)
 
@@ -106,12 +106,11 @@ class RandomCake:
         self.sound_manager = sound_manager  # เพิ่ม
 
         # โหลดภาพพื้นหลัง
-        self.background = pygame.image.load("Elements/background/randomCake_bg.png")
-        self.background = pygame.transform.smoothscale(self.background, (self.screen_w, self.screen_h))
+        self.background = load_image("background", "randomCake_bg.png", (self.screen_w, self.screen_h))
 
         # Board
-        self.board = pygame.image.load("Elements/other/board.png")
-        self.board = pygame.transform.smoothscale(self.board, (change(self.board.get_width()), change(self.board.get_height())))  # ปรับขนาดชั้นวาง
+        self.board = load_image("other", "board.png")
+        self.board = pygame.transform.smoothscale(self.board, (change(self.board.get_width()), change(self.board.get_height())))
         self.board_pos = (338, 108)
 
         # Random Cake
@@ -146,7 +145,7 @@ class RandomCake:
 
     def enter(self):
         pygame.mixer.music.stop()
-        pygame.mixer.music.load("Elements/Sound/RandomPage.mp3")
+        pygame.mixer.music.load(os.path.join(BASE_PATH, "assets", "Sound", "RandomPage.mp3"))
         pygame.mixer.music.set_volume(0.8)  # ตั้งความดังที่ 80%
         pygame.mixer.music.play(-1)
         self.rand_cake.random_parts()
@@ -162,44 +161,43 @@ class Decoration:
         self.sound_manager = sound_manager  # เพิ่ม
 
         # โหลดภาพพื้นหลัง
-        self.background = pygame.image.load("Elements/background/shop_background.png")
-        self.background = pygame.transform.smoothscale(self.background, (self.screen_w, self.screen_h))
+        self.background = load_image("background", "shop_background.png", (self.screen_w, self.screen_h))
 
         # โหลดภาพชั้นวางเค้ก
-        self.shelve = pygame.image.load("Elements/other/shelve.png")
-        self.shelve = pygame.transform.smoothscale(self.shelve, (change(self.shelve.get_width()), change(self.shelve.get_height())))  # ปรับขนาดชั้นวาง
+        self.shelve = load_image("other","shelve.png")
+        self.shelve = pygame.transform.smoothscale(self.shelve, (change(self.shelve.get_width()), change(self.shelve.get_height())))
         self.shelve_pos = (725, 112)
 
         # โหลดภาพแถบสี
         self.color_palette = ColorPalette()
 
         # โหลดปุ่มรีเซ็ต ปุ่มเสร็จสิ้น ปุ่มกลับ
-        reset_button_img = pygame.image.load("Elements/button/reset_button.png")
+        reset_button_img = load_image("button", "reset_button.png")
         self.reset_button = button.Button(929, 638, reset_button_img, 1 / RATIO_720p)
 
-        finish_button_img = pygame.image.load("Elements/button/finish_button.png")
+        finish_button_img = load_image("button" , "finish_button.png")
         self.finish_button = button.Button(1096, 638, finish_button_img, 1 / RATIO_720p)
 
-        back_button_img = pygame.image.load("Elements/button/back_button1.png")
+        back_button_img = load_image("button", "back_button1.png")
         self.back_button = button.Button(21, 15, back_button_img, 1 / RATIO_720p)
 
         # โหลดไอคอนปุ่มด้านบนสำหรับเปลี่ยน sub-state
-        self.base_button = pygame.image.load("Elements/decoration_elements/deco_button/base_button.png").convert_alpha()
+        self.base_button = pygame.image.load(os.path.join(BASE_PATH, "assets", "decoration_elements", "deco_button", "base_button.png")).convert_alpha()
         self.base_button = button.Button(720, 24, self.base_button, 1 / RATIO_720p, smooth=False)
 
-        self.behindcream_button = pygame.image.load("Elements/decoration_elements/deco_button/behindcream_button.png").convert_alpha()
+        self.behindcream_button = pygame.image.load(os.path.join(BASE_PATH, "assets", "decoration_elements", "deco_button", "behindcream_button.png")).convert_alpha()
         self.behindcream_button = button.Button(805, 24, self.behindcream_button, 1 / RATIO_720p, smooth=False)
 
-        self.lowercream_button = pygame.image.load("Elements/decoration_elements/deco_button/lowercream_button.png").convert_alpha()
+        self.lowercream_button = pygame.image.load(os.path.join(BASE_PATH, "assets", "decoration_elements", "deco_button", "lowercream_button.png")).convert_alpha()
         self.lowercream_button = button.Button(890, 24, self.lowercream_button, 1 / RATIO_720p, smooth=False)
 
-        self.middlecream_button = pygame.image.load("Elements/decoration_elements/deco_button/middlecream_button.png").convert_alpha()
+        self.middlecream_button = pygame.image.load(os.path.join(BASE_PATH, "assets", "decoration_elements", "deco_button", "middlecream_button.png")).convert_alpha()
         self.middlecream_button = button.Button(975, 24, self.middlecream_button, 1 / RATIO_720p, smooth=False)
 
-        self.topcream_button = pygame.image.load("Elements/decoration_elements/deco_button/topcream_button.png").convert_alpha()
+        self.topcream_button = pygame.image.load(os.path.join(BASE_PATH, "assets", "decoration_elements", "deco_button", "topcream_button.png")).convert_alpha()
         self.topcream_button = button.Button(1060, 24, self.topcream_button, 1 / RATIO_720p, smooth=False)
 
-        self.topping_button = pygame.image.load("Elements/decoration_elements/deco_button/topping_button.png").convert_alpha()
+        self.topping_button = pygame.image.load(os.path.join(BASE_PATH, "assets", "decoration_elements", "deco_button", "topping_button.png")).convert_alpha()
         self.topping_button = button.Button(1145, 24, self.topping_button, 1 / RATIO_720p, smooth=False)
 
         self.element_manager = ElementStateManager()
@@ -319,7 +317,7 @@ class Decoration:
     
     def enter(self):
         pygame.mixer.music.stop()
-        pygame.mixer.music.load("Elements/Sound/InGamePage.mp3")
+        pygame.mixer.music.load(os.path.join(BASE_PATH, "assets", "Sound", "InGamePage.mp3"))
         pygame.mixer.music.set_volume(0.8)  # ตั้งความดังที่ 80%
         pygame.mixer.music.play(-1)
         self.element_manager.set_state('base')
@@ -334,20 +332,18 @@ class Score:
         self.screen_h = screen_h
         self.sound_manager = sound_manager  # เพิ่ม
 
-        self.background_win = pygame.image.load("Elements/background/score_win_bg.png")
-        self.background_win = pygame.transform.smoothscale(self.background_win, (self.screen_w, self.screen_h))
+        self.background_win = load_image("background", "score_win_bg.png", (self.screen_w, self.screen_h))
 
-        self.background_lose = pygame.image.load("Elements/background/score_lose_bg.png")
-        self.background_lose = pygame.transform.smoothscale(self.background_lose, (self.screen_w, self.screen_h))
+        self.background_lose = load_image("background", "score_lose_bg.png", (self.screen_w, self.screen_h))
 
-        self.board = pygame.image.load("Elements/other/scoreboard.png")
+        self.board = load_image("other", "scoreboard.png", (562, 548))
         self.board = pygame.transform.smoothscale(self.board, (562, 548))  # ปรับขนาดชั้นวาง
         self.board_pos = (171, 17) 
 
-        next_button_img = pygame.image.load("Elements/button/next_button.png")
+        next_button_img = load_image("button", "next_button.png")
         self.next_button = button.Button(1097, 624, next_button_img, 1 / RATIO_720p)
 
-        self.font = pygame.font.Font('font/nura-jeni-thin.ttf', 50) #http://nurarada.lnwshop.com/product/316/ฟอนต์นูร่าเจนี่-โหลดฟรีที่รายละเอียดสินค้า
+        self.font = pygame.font.Font(os.path.join(BASE_PATH, "assets", "font", "nura-jeni-thin.ttf"), 50) #http://nurarada.lnwshop.com/product/316/ฟอนต์นูร่าเจนี่-โหลดฟรีที่รายละเอียดสินค้า
         self.music_loaded = False # flag สำหรับการโหลดเพลง
 
     def run(self):
@@ -360,10 +356,10 @@ class Score:
         if not self.music_loaded:
             pygame.mixer.music.stop()
             if star > 2:
-                pygame.mixer.music.load("Elements/Sound/ShowScorePage[Win].mp3")
+                pygame.mixer.music.load(os.path.join(BASE_PATH, "assets", "Sound", "ShowScorePage[Win].mp3"))
                 pygame.mixer.music.set_volume(1)  # ตั้งความดังที่ 100%
             else:
-                pygame.mixer.music.load("Elements/Sound/ShowScorePage[Lose].mp3")
+                pygame.mixer.music.load(os.path.join(BASE_PATH, "assets", "Sound", "ShowScorePage[Lose].mp3"))
                 pygame.mixer.music.set_volume(1)  # ตั้งความดังที่ 100%
             pygame.mixer.music.play(-1)
             self.music_loaded = True
@@ -406,19 +402,18 @@ class End:
         self.screen_h = screen_h
         self.sound_manager = sound_manager  # เพิ่ม
 
-        self.background = pygame.image.load("Elements/background/endpage_bg.png")
-        self.background = pygame.transform.smoothscale(self.background, (self.screen_w, self.screen_h))
+        self.background = load_image("background", "endpage_bg.png", (self.screen_w, self.screen_h))
 
-        self.back_button = pygame.image.load("Elements/button/back_button2.png").convert_alpha()
+        self.back_button = load_image("button", "back_button2.png")
         self.back_button = button.Button(10, 618, self.back_button, 1 / RATIO_720p)
 
-        self.create_wish_btn = pygame.image.load("Elements/button/wish_button.png").convert_alpha()
+        self.create_wish_btn = load_image("button", "wish_button.png")
         self.create_wish_btn = button.Button(922, 612, self.create_wish_btn, 1 / RATIO_720p)
 
-        self.save_button = pygame.image.load("Elements/button/save_button.png").convert_alpha()
+        self.save_button = load_image("button", "save_button.png")
         self.save_button = SaveImgButton(1095, 638, self.save_button, 1 / RATIO_720p)
 
-        self.home_button = pygame.image.load("Elements/button/home_button.png").convert_alpha()
+        self.home_button = load_image("button", "home_button.png")
         self.home_button = button.Button(1091, 0, self.home_button, 1 / RATIO_720p)
 
         self.font = pygame.font.Font(None, 20)
@@ -468,7 +463,7 @@ class End:
 
     def enter(self):
         pygame.mixer.music.stop()
-        pygame.mixer.music.load("Elements/Sound/EndPage.mp3")
+        pygame.mixer.music.load(os.path.join(BASE_PATH, "assets", "Sound", "EndPage.mp3"))
         pygame.mixer.music.set_volume(0.8)  # ตั้งความดังที่ 80%
         pygame.mixer.music.play(-1)
 
@@ -481,19 +476,18 @@ class Message:
         self.screen_h = screen_h
         self.sound_manager = sound_manager  # เพิ่ม
 
-        self.background = pygame.image.load("Elements/background/end_message_bg.png")
-        self.background = pygame.transform.smoothscale(self.background, (self.screen_w, self.screen_h))
+        self.background = load_image("background", "end_message_bg.png", (self.screen_w, self.screen_h))
 
-        self.back_button = pygame.image.load("Elements/button/back_button2.png").convert_alpha()
+        self.back_button = load_image("button", "back_button2.png")
         self.back_button = button.Button(10, 618, self.back_button, 1 / RATIO_720p)
 
-        self.save_button = pygame.image.load("Elements/button/save_button.png").convert_alpha()
+        self.save_button = load_image("button", "save_button.png")
         self.save_button = SaveImgButton(1095, 638, self.save_button, 1 / RATIO_720p)
         
-        self.remove_button = pygame.image.load("Elements/button/remove_button.png").convert_alpha()
+        self.remove_button = load_image("button", "remove_button.png")
         self.remove_button = button.Button(922, 612, self.remove_button, 1 / RATIO_720p)
 
-        self.home_button = pygame.image.load("Elements/button/home_button.png").convert_alpha()
+        self.home_button = load_image("button", "home_button.png")
         self.home_button = button.Button(1091, 0, self.home_button, 1 / RATIO_720p)
 
         self.text_box = LetterTextBox(706, 181, 300, 270)

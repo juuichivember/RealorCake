@@ -1,8 +1,9 @@
 import pygame
-import sys
+import sys, os
 from state import Start, RandomCake, Decoration, Score, End, Message
 from stateManager import *
 from screen import set_screen
+from decoModule import get_base_path
 
 # 1) import SoundManager
 from soundManager import SoundManager
@@ -22,6 +23,11 @@ class Game():
 
         screen_size = pygame.display.get_desktop_sizes()
         self.screen_w, self.screen_h = set_screen(screen_size[0])
+
+                # โหลดโลโก้
+        base_path = get_base_path() # หา path ของไฟล์
+        icon_path = os.path.join(base_path, "assets", "other", "logo64.png")  # path ของโลโก้, ทำมาใหม่ให้เป็น 64x64
+        icon = pygame.image.load(icon_path)  # โหลดรูปภาพ
 
         pygame.display.set_caption("Namkhing's Cake")
         self.screen = pygame.display.set_mode((self.screen_w, self.screen_h))
