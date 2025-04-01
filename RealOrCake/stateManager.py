@@ -1,6 +1,8 @@
 from cake import Cake
 from randomizeCake import RandomizeCake
-# Context
+
+# State Manager ของ State หลัก ใน state.py
+
 class GameStateManager():
     # Constructor
     def __init__(self, currentState):

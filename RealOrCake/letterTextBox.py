@@ -1,9 +1,12 @@
-import pygame
+import pygame, os
+from decoModule import get_base_path
 
 class LetterTextBox():
     def __init__(self, x, y, width, height):
         self.rect = pygame.Rect(x, y, width, height)
-        self.font = pygame.font.Font('font/nura-wat-thin.ttf', 36) #http://nurarada.lnwshop.com/product/329/ฟอนต์นูร่าหวัด-โหลดฟรีที่รายละเอียดสินค้า
+        base_path = get_base_path()
+        self.font = pygame.font.Font(os.path.join(base_path, "assets", "font", "nura-wat-thin.ttf"), 36) 
+        #http://nurarada.lnwshop.com/product/329/ฟอนต์นูร่าหวัด-โหลดฟรีที่รายละเอียดสินค้า
         self.text = "To: "
         self.lines = [self.text]
         self.text_color = (0, 0, 0)

@@ -1,8 +1,10 @@
 import pygame
-import sys
+import sys, os
 from state import Start, RandomCake, Decoration, Score, End, Message
 from stateManager import *
 from screen import set_screen
+from decoModule import get_base_path
+import asyncio
 
 # 1) import SoundManager
 from soundManager import SoundManager
@@ -16,6 +18,7 @@ class Game():
     def __init__(self):
         pygame.init()
         pygame.mixer.init()  # เริ่มต้นระบบเสียง
+        print("Game started!")
 
         # 2) สร้างออบเจ็กต์ SoundManager
         self.sound_manager = SoundManager()
@@ -23,8 +26,16 @@ class Game():
         screen_size = pygame.display.get_desktop_sizes()
         self.screen_w, self.screen_h = set_screen(screen_size[0])
 
+        # โหลดโลโก้
+        base_path = get_base_path() # หา path ของไฟล์
+        icon_path = os.path.join(base_path, "assets", "other", "logo64.png")  # path ของโลโก้, ทำมาใหม่ให้เป็น 64x64
+        icon = pygame.image.load(icon_path)  # โหลดรูปภาพ
+
+        # ตั้งโลโก้ให้เป็น icon ของหน้าต่าง
+        pygame.display.set_icon(icon)
+
         pygame.display.set_caption("Namkhing's Cake")
-        self.screen = pygame.display.set_mode((self.screen_w, self.screen_h))
+        self.screen = pygame.display.set_mode((self.screen_w, self.screen_h), pygame.RESIZABLE)
         self.clock = pygame.time.Clock()
 
         # Call Context's and Concrete State's Constructor
@@ -50,9 +61,10 @@ class Game():
         # เพิ่ม flag สำหรับตรวจสอบการกด mouse click
         self.click_sound_played = False
 
-    def run(self):
+    async def run(self):
         current_state = self.gameStateManager.get_state()
         while True:
+            print("Loop running...")
             mouse_pos = pygame.mouse.get_pos()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -93,7 +105,8 @@ class Game():
 
             pygame.display.update()
             self.clock.tick(FPS)
+            await asyncio.sleep(0)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     game = Game()
-    game.run()
+    asyncio.run(game.run())
