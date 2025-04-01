@@ -1,5 +1,6 @@
 from elementState import BaseState, BCreamState, LCreamState, MCreamState, TCreamState, ToppingState
 
+# State Manager สำหรับพวก Element States ใน Decoration State
 class ElementStateManager:
     def __init__(self):
         self.states = {

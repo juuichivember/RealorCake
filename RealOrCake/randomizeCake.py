@@ -1,6 +1,8 @@
 from cake import Cake
 import random 
 
+# สร้าง randomzie cake โดยทำการ inherit คลาส Cake มา
+
 class RandomizeCake(Cake):
     def __init_subclass__(cls):
         return super().__init_subclass__()
@@ -10,6 +12,8 @@ class RandomizeCake(Cake):
         return super().reset()
     
     def random_parts(self):
+        # เพิ่ม function เพื่อสุ่มเค้ก
+
         random_options = {
             "base":        ["layered", "plain"],
             "behindcream": ["feather", "wave", "none"],
