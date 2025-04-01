@@ -5,7 +5,7 @@ class Cake:
         # Dictionary to store each part of the cake
         # Example: {"base": ("layered", "grape"), "topcream": ("feather", "vanilla")}
         
-        self.parts = {}
+        self.parts = {"base": ("layered", "grape")}
 
     def add_part(self, part, type, color):
         # Add or update a cake part with a specific type and color.
