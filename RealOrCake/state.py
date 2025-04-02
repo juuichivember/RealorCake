@@ -168,9 +168,6 @@ class Decoration:
         self.shelve = pygame.transform.smoothscale(self.shelve, (change(self.shelve.get_width()), change(self.shelve.get_height())))
         self.shelve_pos = (725, 112)
 
-        # โหลดภาพแถบสี
-        self.color_palette = ColorPalette()
-
         # โหลดปุ่มรีเซ็ต ปุ่มเสร็จสิ้น ปุ่มกลับ
         reset_button_img = load_image("button", "reset_button.png")
         self.reset_button = button.Button(929, 638, reset_button_img, 1 / RATIO_720p)
@@ -205,6 +202,9 @@ class Decoration:
         self.cake = Cake()  # Create an empty cake object
         self.decorator = CakeDecorator(self.cake, self.display)
 
+        # โหลดภาพแถบสี
+        self.color_palette = ColorPalette(self.element_manager, self.cake)
+
         # Alert Finish
         self.font = pygame.font.Font(None, 20)
         self.alert = Alert("Finish the decoration?", self.font, self.screen_w / 2 - 200, self.screen_h / 2 - 100, 400, 200)
@@ -215,7 +215,7 @@ class Decoration:
         self.alert_b_active = False
 
         # ตัวแปรอื่น ๆ
-        self.selected_color_global = "grape"
+        self.selected_color_global = "milk"
 
     def run(self):
         self.handle_events()
@@ -249,9 +249,8 @@ class Decoration:
         
         if self.reset_button.is_mouse_over():
             self.cake.reset()  # Reset cake design
-            self.selected_color_global = None
-            self.decorator.decorations.clear()
-            print("Reset selection")
+            #self.selected_color_global = None
+            #self.decorator.decorations.clear()
             if self.sound_manager:
                 self.sound_manager.play("reset_cake")
 

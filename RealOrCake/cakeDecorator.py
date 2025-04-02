@@ -35,13 +35,20 @@ class CakeDecorator:
 
     def decorate(self, x, y, scale):
         # เพิ่มใน run เพื่อโชว์ภาพแต่ละเลเยอร์
+        cake_draw_order = ["base", "topcream", "lowercream", "middlecream", "behindcream", "topping"]
 
-        for part, (part_type, part_color) in self.cake.parts.items():
-            img = load_cake_part(part, part_type, part_color)
-            if img:
-                img = pygame.transform.smoothscale(img, scale)
-                self.display.blit(img, (x, y))
+        for part in cake_draw_order:
+            if part in self.cake.parts:
+                part_type = self.cake.parts[part][0]
+                part_color = self.cake.parts[part][1]
+                img = load_cake_part(part, part_type, part_color)
+                if img:
+                    img = pygame.transform.smoothscale(img, scale)
+                    self.display.blit(img, (x, y))
+                else:
+                    pass
+                    #print(f"Failed to load image for {part} ({part_type}, {part_color})")
             else:
                 pass
-                #print(f"Failed to load image for {part} ({part_type}, {part_color})")
+
 
