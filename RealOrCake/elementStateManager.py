@@ -17,6 +17,9 @@ class ElementStateManager:
         self.current_state = new_state
         self.states[self.current_state].enter()
 
+    def get_state(self):
+        return self.current_state
+
     def update(self):
         next_state = self.states[self.current_state].update()
         if next_state != self.current_state:
