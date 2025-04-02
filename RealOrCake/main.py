@@ -82,12 +82,15 @@ class Game():
                 if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
                     # รีเซ็ต flag เมื่อปล่อยปุ่ม
                     self.click_sound_played = False
-                
+
                 if current_state == "end_message":
                     self.gameStateManager.get_event().handle_event(event)
+
                 if self.gameStateManager.get_alert_active():
                     if self.gameStateManager.alert.handle_event(event, mouse_pos):
                         self.gameStateManager.set_alert_active(False)  # alert is done
+                
+                self.states[current_state].handle_events(event)
 
             new_state = self.gameStateManager.get_state()
 

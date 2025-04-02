@@ -44,7 +44,7 @@ class ColorPalette():
 
 
     def draw(self, screen):
-        # ใส่ใน run, แสดงรูปถาดและสี
+        # ใส่ใน draw_scene, แสดงรูปถาดและสี
         self.display = screen
         self.state = self.element_manager.get_state()
 
@@ -58,7 +58,7 @@ class ColorPalette():
                 self.color_icons[color].draw(self.display)
 
     def get_color(self):
-        #  ใส่ใน run
+        #  ใส่ใน handle_events
         
         default_color = "milk"
         color_list = self.color_names_no_none if self.state == "base" else self.color_names
