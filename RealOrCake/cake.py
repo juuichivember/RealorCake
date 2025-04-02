@@ -3,9 +3,9 @@
 class Cake:
     def __init__(self):
         # Dictionary to store each part of the cake
-        # Example: {"base": ("layered", "grape"), "topcream": ("feather", "vanilla")}
+        # Example: {"base": ("plain", "grape"), "topcream": ("feather", "vanilla")}
         
-        self.parts = {"base": ("layered", "grape")}
+        self.parts = {"base": ("plain", "milk")} # have a base as plain milk as a default
 
     def add_part(self, part, type, color):
         # Add or update a cake part with a specific type and color.
@@ -14,11 +14,20 @@ class Cake:
         print(f"Updated {part} with {type} in {color}")
 
     def reset(self):
-        # Reset the cake to an empty state.
+        # Reset the cake to have a base as plain milk as a default.
 
-        self.parts = {}
+        self.parts = {"base": ("plain", "milk")}
         print("Cake reset!")
 
     def get_parts(self):
         return self.parts
-        
+    
+    def remove_part(self, part):
+        # remove a decoration when press none button
+
+        if part in self.get_parts():
+            print(f"removing {part}: {self.parts}")
+            self.parts.pop(part)
+            print(f"{part} is removed: {self.parts}")
+        else:
+            print(f"There is no {part} in the cake.")

@@ -24,11 +24,14 @@ class Game():
         screen_size = pygame.display.get_desktop_sizes()
         self.screen_w, self.screen_h = set_screen(screen_size[0])
 
-                # โหลดโลโก้
+        # โหลดโลโก้
         base_path = get_base_path() # หา path ของไฟล์
         icon_path = os.path.join(base_path, "assets", "other", "logo64.png")  # path ของโลโก้, ทำมาใหม่ให้เป็น 64x64
         icon = pygame.image.load(icon_path)  # โหลดรูปภาพ
 
+        # ตั้งโลโก้ให้เป็น icon ของหน้าต่าง
+        pygame.display.set_icon(icon)
+        
         pygame.display.set_caption("Namkhing's Cake")
         self.screen = pygame.display.set_mode((self.screen_w, self.screen_h))
         self.clock = pygame.time.Clock()
@@ -82,12 +85,15 @@ class Game():
                 if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
                     # รีเซ็ต flag เมื่อปล่อยปุ่ม
                     self.click_sound_played = False
-                
+
                 if current_state == "end_message":
                     self.gameStateManager.get_event().handle_event(event)
+
                 if self.gameStateManager.get_alert_active():
                     if self.gameStateManager.alert.handle_event(event, mouse_pos):
                         self.gameStateManager.set_alert_active(False)  # alert is done
+                
+                self.states[current_state].handle_events(event)
 
             new_state = self.gameStateManager.get_state()
 
