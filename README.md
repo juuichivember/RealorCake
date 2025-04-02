@@ -17,6 +17,7 @@ A repository of a cake decoration game called 'Namkhing's Cake'
 
 
 <hr>
+
 **How to pyinstaller**
 ทำใน terminal
 1. เข้าใน directory ที่มี main.py
