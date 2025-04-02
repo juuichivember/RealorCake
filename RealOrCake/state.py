@@ -88,6 +88,9 @@ class Start:
             else:
                 pass  #print("No button clicked")
 
+    def handle_events(self, event):
+        pass
+
     def enter(self):
         # เล่นเพลง background หน้า start
         pygame.mixer.music.stop()
@@ -143,6 +146,9 @@ class RandomCake:
             self.timer.reset()
             self.gameStateManager.set_state('decoration')
 
+    def handle_events(self, event):
+        pass
+
     def enter(self):
         pygame.mixer.music.stop()
         pygame.mixer.music.load(os.path.join(BASE_PATH, "assets", "Sound", "RandomPage.mp3"))
@@ -167,9 +173,6 @@ class Decoration:
         self.shelve = load_image("other","shelve.png")
         self.shelve = pygame.transform.smoothscale(self.shelve, (change(self.shelve.get_width()), change(self.shelve.get_height())))
         self.shelve_pos = (725, 112)
-
-        # โหลดภาพแถบสี
-        self.color_palette = ColorPalette()
 
         # โหลดปุ่มรีเซ็ต ปุ่มเสร็จสิ้น ปุ่มกลับ
         reset_button_img = load_image("button", "reset_button.png")
@@ -205,6 +208,9 @@ class Decoration:
         self.cake = Cake()  # Create an empty cake object
         self.decorator = CakeDecorator(self.cake, self.display)
 
+        # โหลดภาพแถบสี
+        self.color_palette = ColorPalette(self.element_manager, self.cake)
+
         # Alert Finish
         self.font = pygame.font.Font(None, 20)
         self.alert = Alert("Finish the decoration?", self.font, self.screen_w / 2 - 200, self.screen_h / 2 - 100, 400, 200)
@@ -215,10 +221,9 @@ class Decoration:
         self.alert_b_active = False
 
         # ตัวแปรอื่น ๆ
-        self.selected_color_global = "grape"
+        self.selected_color_global = "milk"
 
     def run(self):
-        self.handle_events()
         self.draw_scene()
 
     # ฟังก์ชันวาดฉาก
@@ -244,38 +249,7 @@ class Decoration:
         self.decorator.decorate(62, 209, (511, 511))
 
     # ฟังก์ชันจัดการเหตุการณ์
-    def handle_events(self):
-        self.gameStateManager.set_cake(self.cake)
-        
-        if self.reset_button.is_mouse_over():
-            self.cake.reset()  # Reset cake design
-            self.selected_color_global = None
-            self.decorator.decorations.clear()
-            print("Reset selection")
-            if self.sound_manager:
-                self.sound_manager.play("reset_cake")
-
-        if self.finish_button.is_mouse_over():
-            self.gameStateManager.set_state('score_page')
-
-        if self.back_button.is_mouse_over():
-            self.cake.reset()
-            self.random_cake = self.gameStateManager.get_randomcake()
-            self.gameStateManager.reset_randomcake()
-            self.gameStateManager.set_state('start')
-
-        # Check for element state selection
-        for button_item, state_name in [
-            (self.base_button, "base"),
-            (self.behindcream_button, "behindcream"),
-            (self.lowercream_button, "lowercream"),
-            (self.middlecream_button, "middlecream"),
-            (self.topcream_button, "topcream"),
-            (self.topping_button, "topping"),
-        ]:
-            if button_item.is_mouse_over():
-                self.element_manager.set_state(state_name)
-
+    def handle_events(self, event):
         shelf_positions = [
             (749, 135), (892, 135), (1038, 135),
             (749, 285), (892, 285), (1038, 285),
@@ -290,30 +264,57 @@ class Decoration:
             "topcream":    ["feather", "wave"],
             "topping":     ["bow", "crown", "floweredge", "flowertop", "pearl", "strawberry_3", "strawberry_4"]
         }
+        self.gameStateManager.set_cake(self.cake)
 
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        mouse_clicked = pygame.mouse.get_pressed()[0]  # Left click
+        if self.reset_button.is_mouse_over():
+            self.cake.reset()  # Reset cake design
+            if self.sound_manager:
+                self.sound_manager.play("reset_cake")
 
-        selected_color = self.color_palette.get_color()
-        if selected_color:
-            self.selected_color_global = selected_color  # Save the current color
-            if self.element_manager.current_state in self.cake.parts:
-                part_type = self.cake.parts[self.element_manager.current_state][0]
-                self.decorator.add_decoration(self.element_manager.current_state, part_type, self.selected_color_global)
+        elif self.finish_button.is_mouse_over():
+            self.gameStateManager.set_state('score_page')
 
-        current_state_name = self.element_manager.current_state  # base, lowercream, etc.
-        shelf_items = state_options[current_state_name]
+        elif self.back_button.is_mouse_over():
+            self.cake.reset()
+            self.random_cake = self.gameStateManager.get_randomcake()
+            self.gameStateManager.reset_randomcake()
+            self.gameStateManager.set_state('start')
 
-        for i, item_type in enumerate(shelf_items):
-            x, y = shelf_positions[i]
-            if x <= mouse_x <= x + 167 and y <= mouse_y <= y + 167 and mouse_clicked:
-                if self.selected_color_global is None:
-                    self.cake.reset()
-                else:
-                    print(f"Placing {item_type} in {current_state_name} with color {self.selected_color_global}")
-                    self.decorator.add_decoration(current_state_name, item_type, self.selected_color_global)
-                    if self.sound_manager:
-                        self.sound_manager.play("apply_frosting")
+        # เช็คว่ากดปุ่มเปลี่ยน sub-state หรือไม่
+        for button_item, state_name in [
+            (self.base_button, "base"),
+            (self.behindcream_button, "behindcream"),
+            (self.lowercream_button, "lowercream"),
+            (self.middlecream_button, "middlecream"),
+            (self.topcream_button, "topcream"),
+            (self.topping_button, "topping"),
+        ]:
+            if button_item.is_mouse_over():
+                self.element_manager.set_state(state_name)
+
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # ตรวจจับคลิกซ้าย
+            mouse_x, mouse_y = event.pos
+            
+            # เช็คการเลือกสี
+            selected_color = self.color_palette.get_color()
+            if selected_color:
+                self.selected_color_global = selected_color  # บันทึกสีที่เลือกไว้
+                if self.element_manager.current_state in self.cake.parts:
+                    part_type = self.cake.parts[self.element_manager.current_state][0]
+                    self.decorator.add_decoration(self.element_manager.current_state, part_type, self.selected_color_global)
+                    selected_color = self.color_palette.get_color()
+            
+            # เช็คการเลือกองค์ประกอบจากชั้นวาง
+            current_state_name = self.element_manager.current_state
+            if current_state_name in state_options:
+                shelf_items = state_options[current_state_name]
+                for i, item_type in enumerate(shelf_items):
+                    x, y = shelf_positions[i]
+                    if x <= mouse_x <= x + 167 and y <= mouse_y <= y + 167:
+                        print(f"Placing {item_type} in {current_state_name} with color {self.selected_color_global}")
+                        self.decorator.add_decoration(current_state_name, item_type, self.selected_color_global)
+                        if self.sound_manager:
+                            self.sound_manager.play("apply_frosting")
     
     def enter(self):
         pygame.mixer.music.stop()
@@ -389,6 +390,9 @@ class Score:
         if self.next_button.is_mouse_over():
             self.gameStateManager.set_state('end')
 
+    def handle_events(self, event):
+        pass
+
     def enter(self):
         # รีเซ็ต flag เมื่อเข้าสู่ state Score ใหม่
         self.music_loaded = False
@@ -460,6 +464,9 @@ class End:
         if self.home_button.is_mouse_over():
             self.gameStateManager.reset()
             self.gameStateManager.set_state('start')
+
+    def handle_events(self, event):
+        pass
 
     def enter(self):
         pygame.mixer.music.stop()
@@ -534,6 +541,9 @@ class Message:
         if self.home_button.is_mouse_over():
             self.gameStateManager.reset()
             self.gameStateManager.set_state('start')
+
+    def handle_events(self, event):
+        pass
 
     def enter(self):
         pass
