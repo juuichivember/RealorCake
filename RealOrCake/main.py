@@ -1,6 +1,6 @@
 import pygame
 import sys, os
-from state import Start, RandomCake, Decoration, Score, End, Message
+from states import Start, OptionPage, RandomCake, Decoration, Score, End, Message, GalleryPage
 from stateManager import *
 from screen import set_screen
 from decoModule import get_base_path
@@ -41,19 +41,23 @@ class Game():
 
         # 3) ส่ง sound_manager เข้าไปใน State แต่ละตัว
         self.start = Start(self.screen, self.gameStateManager, self.screen_w, self.screen_h, self.sound_manager)
+        self.option_page = OptionPage(self.screen, self.gameStateManager, self.screen_w, self.screen_h, self.sound_manager)
         self.random_cake = RandomCake(self.screen, self.gameStateManager, self.screen_w, self.screen_h, self.sound_manager)
         self.decoration = Decoration(self.screen, self.gameStateManager, self.screen_w, self.screen_h, self.sound_manager)
         self.score_page = Score(self.screen, self.gameStateManager, self.screen_w, self.screen_h, self.sound_manager)
         self.end = End(self.screen, self.gameStateManager, self.screen_w, self.screen_h, self.sound_manager)
         self.message = Message(self.screen, self.gameStateManager, self.screen_w, self.screen_h, self.sound_manager)
+        self.gallery_page = GalleryPage(self.screen, self.gameStateManager, self.screen_w, self.screen_h, self.sound_manager)
 
         self.states = {
-            'start': self.start, 
+            'start': self.start,
+            'option_page': self.option_page, 
             'random_cake': self.random_cake,
             'decoration': self.decoration,
             'score_page': self.score_page,
             'end': self.end,
-            'end_message': self.message
+            'end_message': self.message,
+            'gallery_page': self.gallery_page,
         }
         self.start.enter()
         # เพิ่ม flag สำหรับตรวจสอบการกด mouse click

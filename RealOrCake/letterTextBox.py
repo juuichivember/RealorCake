@@ -10,7 +10,7 @@ class LetterTextBox():
         self.text = "To: "
         self.lines = [self.text]
         self.text_color = (0, 0, 0)
-        self.bg_color = (255, 255, 255)
+        self.bg_color = (255, 255, 255, 0)
         self.border_color = (255, 255, 255)
         self.border_width = 1
         self.active = False

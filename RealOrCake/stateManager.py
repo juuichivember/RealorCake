@@ -12,12 +12,13 @@ class GameStateManager():
         self.event = None
         self.alert = None
         self.alert_active = False
+        self.mode = 'random'  # เพิ่ม attribute สำหรับเก็บ mode (default: random)
     
-    # Accessor
+    # Accessor สำหรับ state
     def get_state(self):
         return self.currentState
     
-    # Mutator
+    # Mutator สำหรับ state
     def set_state(self, state):
         self.currentState = state
 
@@ -58,3 +59,10 @@ class GameStateManager():
     def reset_randomcake(self):
         self.random_cake.reset()
         self.set_randomcake(None)
+    
+    # Accessor และ Mutator สำหรับ mode
+    def get_mode(self):
+        return self.mode
+
+    def set_mode(self, mode):
+        self.mode = mode
