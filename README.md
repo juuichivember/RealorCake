@@ -29,11 +29,12 @@ A repository of a cake decoration game called 'Namkhing's Cake'
     3. แก้ปัญหา mouse over ละกดเลือกเอง เป็น mouse button down
     4. แก้ไขคลาส SaveImgButton เปลี่ยนชื่อไฟล์เป็น pattern dateTime เซฟรูปภาพในโฟลเดอร์ Downloads/RealorCakeGallery ถ้าไม่มีก็สร้างโฟลเดอร์ขึ้นมาให้เอง เพื่อการแสดงผลหน้า gallery
     5. ทำหน้า galleryPage ใช้ dateTime sort เรียงจากใหม่ไปเก่า ใช้ปุ่มเปลี่ยนหน้าซ้ายขวา แสดงแบบ 2x3 กดรูปเพื่อดูได้ 
-    6. เปลี่ยนการเซฟรูปใหม่เพื่อแสดงผลขนาดเท่ากัน จัด content layer เพื่อเซฟเฉพาะหน้าเกมทั้งหน้าไม่รวมปุ่ม 
+    6. เปลี่ยนการเซฟรูปใหม่เพื่อแสดงผลขนาดเท่ากัน จัด content layer เพื่อเซฟเฉพาะหน้าเกมทั้งหน้าไม่รวมปุ่ม กระทบหน้า message ต้องจัดแบ่งส่วนวาด content layer แล้วกล่องข้อความบังเค้ก แก้ไขให้พื้นข้อความโปร่งใส + กรอบข้อความโปร่งใส
+    7. แก้ไขการแสดงส่วน message ให้มี cursor รู้ว่าพิมพ์ถึงไหนแล้ว เจอปัญหาการพิมเบิ้ล กดแช่เพื่อลบไม่ได้ แก้ให้เป็นปกติแล้ว 
 - ปัญหาที่เจอตอนนี้:
     1. ปัญหาดูคะแนน กด finish รอบเดียวไม่ไป ต้องกดย้ำ 2 ครั้ง พอกดแล้วมันเลยหน้า แสดงคะแนนไปต้องกดกลับเพื่อมาดูคะแนน แทนที่จะดูได้เลย
     2. ปัญหากดช้าก็ยังมีเหมือนเดิม ทำไมนักหนาวะ
-    3. Gallery Page ไม่สวย รูปที่แสดงก็ฉากหลังนี้ แล้วทำไมพื้นหลังหน้า Gallery ยังลายพื้นหน้านี้อีก ซ้ำซ้อน ขาดเฟรมสำหรับคลิกกดดูภาพใหญ่ ขาดส่วนสำหรับลบภาพใน gallery ที่ไม่เอาแล้ว อยากให้แสดง Gallery เฉพาะรูปที่save เท่านั้น จะแก้ให้สร้าง folder ใน download สำหรับเก็บรูปภาพแทนเป็นหมวดหมู่หน่อย 
+    3. Gallery Page ไม่สวย รูปที่แสดงก็ฉากหลังนี้ แล้วทำไมพื้นหลังหน้า Gallery ยังลายพื้นหน้านี้อีก ซ้ำซ้อน ขาดส่วนสำหรับลบภาพใน gallery ที่ไม่เอาแล้ว อยากให้แสดง Gallery เฉพาะรูปที่save เท่านั้น จะแก้ให้สร้าง folder ใน download สำหรับเก็บรูปภาพแทนเป็นหมวดหมู่หน่อย 
     4. ปัญหา ปุ่ม create a wish/remove กดหลายครั้งมากไม่ได้ กดปุ่มอื่นแล้วเด้งออก
 
 <br>
@@ -45,3 +46,12 @@ A repository of a cake decoration game called 'Namkhing's Cake'
 1. เข้าใน directory ที่มี main.py
 2. พิมพ์คำสั่ง pyinstaller --onefile --noconsole --add-data "assets:assets" --exclude Screenshots --name "NamkhingsCake-1.0.1" main.py
 3. จะมี directory ชื่อ dist ที่มีไฟล์ .exe หรือไม่ก็ .app (for macOS) ขึ้นมา ให้ zip dist แล้วอัพโหลดลงไดร์ฟได้เลย
+
+cd D:\RealOrCake\RealorCake
+python -m PyInstaller `
+  --onefile `
+  --windowed `
+  --name NamkhingCake-1.1.0 `
+  --add-data "assets;assets" `
+  --add-data "states;states" `
+  main.py
