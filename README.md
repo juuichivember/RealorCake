@@ -55,3 +55,9 @@ python -m PyInstaller `
   --add-data "assets;assets" `
   --add-data "states;states" `
   main.py
+
+git status
+git branch
+git add .
+git commit -m ""
+git push -u origin v2.0.0
