@@ -45,7 +45,7 @@ class OptionPage:
                 if self.sound_manager:
                     self.sound_manager.play("start_click")
                 self.gameStateManager.set_mode('normal')
-                self.gameStateManager.set_state('decoration')
+                self.gameStateManager.set_state('baking')
             elif self.back_button.is_mouse_over():
                 self.gameStateManager.set_state('start')
 

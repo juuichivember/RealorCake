@@ -2,7 +2,7 @@ import pygame
 import sys, os
 from states import (
     Start, OptionPage, RandomCake, Decoration,
-    Score, End, Message, GalleryPage
+    Score, End, Message, GalleryPage, BakingPage,
 )
 from stateManager import GameStateManager
 from screen import set_screen
@@ -39,6 +39,7 @@ class Game:
         self.start        = Start(self.screen, self.gsm, self.screen_w, self.screen_h, self.sound_manager)
         self.option_page  = OptionPage(self.screen, self.gsm, self.screen_w, self.screen_h, self.sound_manager)
         self.random_cake  = RandomCake(self.screen, self.gsm, self.screen_w, self.screen_h, self.sound_manager)
+        self.baking = BakingPage(self.screen, self.gsm, self.screen_w, self.screen_h, self.sound_manager)
         self.decoration   = Decoration(self.screen, self.gsm, self.screen_w, self.screen_h, self.sound_manager)
         self.score_page   = Score(self.screen, self.gsm, self.screen_w, self.screen_h, self.sound_manager)
         self.end          = End(self.screen, self.gsm, self.screen_w, self.screen_h, self.sound_manager)
@@ -50,6 +51,7 @@ class Game:
             'start':        self.start,
             'option_page':  self.option_page,
             'random_cake':  self.random_cake,
+            'baking':       self.baking,
             'decoration':   self.decoration,
             'score_page':   self.score_page,
             'end':          self.end,

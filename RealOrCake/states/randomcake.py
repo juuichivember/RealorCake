@@ -52,11 +52,11 @@ class RandomCake:
             if self.timer.is_finished():
                 print("Timer finished!")
                 self.timer.reset()
-                self.gameStateManager.set_state('decoration')
+                self.gameStateManager.set_state('baking')
         else:
             self.decorator.decorate(407, 117, (410, 410))
 
     def handle_events(self, event):
         if self.gameStateManager.get_mode() == 'normal':
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                self.gameStateManager.set_state('decoration')
+                self.gameStateManager.set_state('baking')

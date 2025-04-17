@@ -6,3 +6,4 @@ from .score import Score
 from .end import End
 from .message import Message
 from .gallerypage import GalleryPage
+from .baking import BakingPage
