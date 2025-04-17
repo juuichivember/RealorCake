@@ -22,7 +22,7 @@ A repository of a cake decoration game called 'Namkhing's Cake'
 
 <br>
 
-**v1.1.0 ยังไม่เสร็จ**
+**v1.1.0**
 - แก้มีรายละเอียดดังนี้:
     1. ทำหน้า optionPage ทำ normal mode/random mode ด้วย ใช้ State เดิมแต่แยก Logic ด้วย Flag ใส่รับค่าเลือก mode ไหน ไปหน้าไหน normal ข้าม random, จับเวลา, นับคะแนน
     2. เปลี่ยนไฟล์ state โค้ดเยอะ แยก class เป็นแต่ละไฟล์ไปเลย
