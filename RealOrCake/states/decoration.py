@@ -8,6 +8,7 @@ from cake import Cake
 from cakeDecorator import CakeDecorator
 from button import Button
 from alert import Alert
+pygame.mixer.init()
 
 RATIO_720p = 1.5
 BASE_PATH = get_base_path()
@@ -98,6 +99,7 @@ class Decoration:
             if self.sound_manager:
                 self.sound_manager.play("reset_cake")
         elif self.finish_button.is_mouse_over():
+            self.sound.play("serve")
             if self.gameStateManager.get_mode() == 'normal':
                 self.gameStateManager.set_state('end')
             else:

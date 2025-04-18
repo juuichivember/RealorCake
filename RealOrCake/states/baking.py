@@ -19,6 +19,7 @@ class BakingPage:
         self.gsm    = gsm
         self.sw, self.sh = sw, sh
         self.sound = sound_manager
+        self.filling_selected = None  # กำหนดตัวแปรเก็บค่า filling ที่ผู้เล่นเลือก
 
         # State flags
         self.step           = STEP_INGREDIENTS
@@ -131,6 +132,10 @@ class BakingPage:
         self.mix_ready      = self.mix_done = self.cut_done = self.frost_done = False
         self.dragging       = None
         self.current_flavor = None
+        pygame.mixer.music.stop()
+        pygame.mixer.music.load(os.path.join(BASE_PATH, "assets", "Sound", "baking_background.mp3"))
+        pygame.mixer.music.set_volume(0.6)
+        pygame.mixer.music.play(-1)
 
     def run(self):
         if self.step == STEP_INGREDIENTS:
@@ -170,29 +175,43 @@ class BakingPage:
             self.screen.blit(img,(mx-ox,my-oy))
 
     def draw_mix_it(self):
-        self.screen.blit(self.bg,(0,0))
-        self.screen.blit(self.mix_it_bar,(0,0))
+        self.screen.blit(self.bg, (0, 0))
+        self.screen.blit(self.mix_it_bar, (0, 0))
         if self.mix_it_frames:
             frame = self.mix_it_frames[-1] if self.mix_done else self.mix_it_frames[0]
-            self.screen.blit(frame,(0,0))
+            self.screen.blit(frame, (0, 0))
         self.blender_btn.draw(self.screen)
+        
+        # เพิ่มการแสดงแสง (glow) สำหรับ blender
+        mx, my = pygame.mouse.get_pos()
+        if self.blender_btn.mask.get_at((mx, my)):
+            glow = self.blender_btn.mask.to_surface(setcolor=(255, 255, 0, 100), unsetcolor=(0, 0, 0, 0))
+            self.screen.blit(glow, (0, 0))
+        
         if self.mix_done:
             self.btn_next.draw(self.screen)
 
     def draw_cutting(self):
-        self.screen.blit(self.bg,(0,0))
+        self.screen.blit(self.bg, (0, 0))
         if not self.cut_done and self.dragging is None:
-            self.screen.blit(self.cutting_1,(0,0))
+            self.screen.blit(self.cutting_1, (0, 0))
             self.knife_btn.draw(self.screen)
+            
+            # เพิ่มการแสดงแสง (glow) สำหรับ knife
+            mx, my = pygame.mouse.get_pos()
+            if self.knife_btn.mask.get_at((mx, my)):
+                glow = self.knife_btn.mask.to_surface(setcolor=(255, 255, 0, 100), unsetcolor=(0, 0, 0, 0))
+                self.screen.blit(glow, (0, 0))
         elif self.dragging == 'knife':
-            mx,my = pygame.mouse.get_pos()
-            ox,oy = self.drag_offset
-            self.screen.blit(self.cutting_1,(0,0))
-            self.screen.blit(self.knife_btn.image,(mx-ox,my-oy))
+            mx, my = pygame.mouse.get_pos()
+            ox, oy = self.drag_offset
+            self.screen.blit(self.cutting_1, (0, 0))
+            self.screen.blit(self.knife_btn.image, (mx - ox, my - oy))
         else:
             for img in self.cut_final:
-                self.screen.blit(img,(0,0))
+                self.screen.blit(img, (0, 0))
             self.btn_next.draw(self.screen)
+
 
     def draw_frosting(self):
         self.screen.blit(self.bg,(0,0))
@@ -255,7 +274,9 @@ class BakingPage:
                 self.step = STEP_CUTTING
                 return
             if self.blender_btn.mask.get_at(e.pos) and not self.mix_done:
+                self.sound.play("cake_mixer")
                 self.play_mix_it_animation()
+                self.sound.stop("cake_mixer")
                 self.mix_done = True
 
     def _handle_cutting(self, e):
@@ -269,13 +290,17 @@ class BakingPage:
             x, y = e.pos
             self.dragging = None
             if self.cake_rect.collidepoint(x, y):
+                self.sound.play("cut_cake")
                 self.play_cut_animation()
+                self.sound.stop("cut_cake")
                 self.cut_done = True
 
     def _handle_frosting(self, e):
         if e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
             # Next to decoration if frosting done
             if self.frost_done and self.btn_next.mask.get_at(e.pos):
+                # ส่งค่า filling (flavor) ไปยัง GameStateManager
+                self.gsm.set_flavor(self.current_flavor)  # ส่งค่าสีไส้ที่เลือก
                 self.gsm.set_state('decoration')
                 return
             # Reset frosting to choose again
@@ -295,15 +320,27 @@ class BakingPage:
             self.dragging = None
             # Apply frosting only when dropped in cake area
             if self.cake_rect.collidepoint(x, y):
+                self.sound.play("yam")
                 for frame in self.frost_frames[flavor]:
                     self.screen.blit(self.bg, (0,0))
                     self.screen.blit(self.cutting_8, (0,0))
                     self.screen.blit(frame, (0,0))
                     pygame.display.flip()
                     pygame.time.delay(300)
+                self.sound.stop("yam")
                 self.current_flavor = flavor
+                print(f"[Debug] ผู้เล่นเลือกไส้เค้กเป็น: {flavor}")
                 self.frost_done = True
+                
     def play_animation(self,name):
+         # เล่นเสียงตามชื่อของวัตถุดิบที่เลือก
+        if name == 'egg':
+            self.sound.play("crack_egg")
+        elif name == 'sugar' or name == 'baking_flour' or name == 'baking_powder' or name == 'salt' or name == 'butter':
+            self.sound.play("dried_food")
+        elif name == 'vanilla_extract' or name == 'milk':
+            self.sound.play("liquid")
+
         frames = self.anim_frames[name]
         base   = self._make_snapshot()
         for f in frames:
@@ -313,6 +350,9 @@ class BakingPage:
             pygame.time.delay(300)
         if name not in self.no_persist and frames:
             self.persistent[name] = frames[-1]
+
+        if name in ['egg', 'sugar', 'vanilla_extract', 'milk', 'baking_flour', 'baking_powder', 'butter', 'salt']:
+            self.sound.stop(name)
 
     def play_mix_it_animation(self):
         for f in self.mix_it_frames:
@@ -345,4 +385,3 @@ class BakingPage:
 
     def exit(self):
         pass
-

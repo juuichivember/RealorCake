@@ -115,7 +115,10 @@ class GalleryPage:
         self.thumb_rects = []
 
     def enter(self):
-        pass
+        pygame.mixer.music.stop()
+        pygame.mixer.music.load(os.path.join(BASE_PATH, "assets", "Sound", "PhotoPageBackground.mp3"))
+        pygame.mixer.music.set_volume(0.6)
+        pygame.mixer.music.play(-1)
 
     def run(self):
         # — full-view mode —

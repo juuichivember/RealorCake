@@ -1,4 +1,3 @@
-# states/randomcake.py
 import pygame, os
 from decoModule import load_image, get_base_path
 from screen import change_ratio_1080_to_720 as change
@@ -22,22 +21,31 @@ class RandomCake:
         self.board = pygame.transform.smoothscale(self.board, (change(self.board.get_width()), change(self.board.get_height())))
         self.board_pos = (338, 108)
 
-        self.rand_cake = RandomizeCake()
+        # ส่ง self.gameStateManager ให้กับ RandomizeCake เพื่อเชื่อมโยงกับ GameStateManager
+        self.rand_cake = RandomizeCake(self.gameStateManager)  # ส่ง gsm ให้ RandomizeCake
         self.decorator = CakeDecorator(self.rand_cake, self.display)
         self.timer = Timer(self.display)
+
+        self.font = pygame.font.Font(os.path.join(BASE_PATH, "assets", "font", "nura-jeni-thin.ttf"), 30)
 
     def enter(self):
         pygame.mixer.music.stop()
         pygame.mixer.music.load(os.path.join(BASE_PATH, "assets", "Sound", "RandomPage.mp3"))
-        pygame.mixer.music.set_volume(0.8)
+        pygame.mixer.music.set_volume(0.4)
         pygame.mixer.music.play(-1)
         if self.gameStateManager.get_mode() == 'random':
-            self.rand_cake.random_parts()
+            self.rand_cake.random_parts()  # สุ่มส่วนประกอบต่างๆ
             self.timer.start()
 
     def run(self):
         self.display.blit(self.background, (0, 0))
         self.display.blit(self.board, self.board_pos)
+        # ดึงรสชาติที่สุ่มมา (เก็บไว้ใน RandomizeCake.parts['filling'][1])
+        flavor = self.rand_cake.get_parts().get('filling', ('none', 'none'))[1]
+        flavor_text = f"Cake Flavor: {flavor.capitalize()}"
+        # ตำแหน่งปรับได้ตามดีไซน์
+        text_surf = self.font.render(flavor_text, True, (0, 0, 0))
+        self.display.blit(text_surf, (self.board_pos[0] + 30, self.board_pos[1] + 20))
         if self.gameStateManager.get_mode() == 'random':
             self.timer.render()
             for part, (part_type, part_color) in self.rand_cake.parts.items():

@@ -1,103 +1,107 @@
 import pygame, os
 from decoModule import get_base_path
-FULLSCORE = 12
+
+# Scoreboard สำหรับ Random Mode (รองรับ filling)
+FULLSCORE = 14        # 7 parts x 2 points
 PART_FULLSCORE = 2
 
-# Scoreboard ใน Score State
-
-class RandomGameScoreboard():
-    def __init__(self, player_parts, random_parts):
+class RandomGameScoreboard:
+    def __init__(self, player_parts, random_parts, gsm):
         self.fontsize = 36
         base_path = get_base_path()
-        self.font = pygame.font.Font(os.path.join(base_path, "assets", "font", "nura-wat-thin.ttf"), self.fontsize)
+        font_path = os.path.join(base_path, "assets", "font", "nura-wat-thin.ttf")
+        self.font = pygame.font.Font(font_path, self.fontsize)
         self.fontcolor = (0, 0, 0)
 
         self.score = 0
         self.player_parts = player_parts
         self.random_parts = random_parts
         self.score_description = {}
-    
+        self.gsm = gsm  # รับ GameStateManager เพื่อใช้ในการดึงค่า flavor (filling)
+        self.debug_printed = False  # Flag to control debug printing
+
     def calculate_score(self):
-        # คำนวณคะแนน ถ้าใน part เดียวกัน type เดียวกัน +1 สีเหมือนกัน +1
+        if self.debug_printed:
+            return self.score  # Return score if already calculated
 
+        # ดึงค่า filling ที่ผู้เล่นเลือกจาก GameStateManager
+        player_filling = self.gsm.get_flavor()
+
+        # เตรียมลิสต์ parts ที่ต้องตรวจ ทั้ง decoration + รสไส้
+        all_parts = [
+            "base", "behindcream", "lowercream",
+            "middlecream", "topcream", "topping",
+            "filling"
+        ]
+
+        # เติม "none" ให้ครบทุก part ทั้งสองชุด
+        for part in all_parts:
+            if part not in self.player_parts:
+                self.player_parts[part] = ("none", "none")
+            if part not in self.random_parts:
+                self.random_parts[part] = ("none", "none")
+
+        # เรียงคีย์เพื่อ deterministic output และคำนวณคะแนน
         self.score = 0
-        all_parts = ["base", "behindcream", "lowercream", "middlecream", "topcream", "topping"]
+        for part in sorted(all_parts):
+            p_type, p_color = self.player_parts[part]
+            r_type, r_color = self.random_parts[part]
+            
+            # Debug แสดงผลการเปรียบเทียบ
+            print(f"Comparing {part}:")
+            print(f"  Player selected {part} -> Type: {p_type}, Color: {p_color}")
+            print(f"  Random (target) {part} -> Type: {r_type}, Color: {r_color}")
 
-        # เช็กว่า parts เท่ากัน ถ้าไม่เท่ากันจะเติม none ใส่ใน parts
-        if len(self.player_parts) != len(all_parts):
-            for part in all_parts:
-                if part not in self.player_parts:
-                    self.player_parts[part] = ("none", "none")
-        myKeys = list(self.player_parts.keys())
-        myKeys.sort()
-        self.player_parts = {i: self.player_parts[i] for i in myKeys} # Sorted Dictionary
+            # กรณี filling: ให้ 2 คะแนนเมื่อรส (color) ตรงเท่านั้น
+            if part == "filling":
+                # เทียบค่าที่ผู้เล่นเลือกกับที่สุ่มออกมา
+                part_score = 2 if player_filling == r_color else 0
+                print(f"  Filling score: {part_score} (Player selected {player_filling}, Random was {r_color})")
+            else:
+                # decoration: type + color ปกติ
+                part_score = (1 if p_type == r_type else 0) + (1 if p_color == r_color else 0)
+                print(f"  Score for {part}: {part_score} (Type match: {1 if p_type == r_type else 0}, Color match: {1 if p_color == r_color else 0})")
 
-        print("randomized cake", self.random_parts)
-        print("player's cake", self.player_parts)
+            self.score_description[part] = (part_score, PART_FULLSCORE)
+            self.score += part_score
 
-        # คำนวณคะแนน
-        for p_part, (p_type, p_color) in self.player_parts.items():
-            for r_part, (r_type, r_color) in self.random_parts.items():
-                part_score = 0
-                if p_part == r_part:
-                    if p_type == r_type:
-                        part_score += 1
-                    if p_color == r_color:
-                        part_score += 1
-                    self.score_description[r_part] = (part_score, PART_FULLSCORE)
-                self.score += part_score
-
+        # สรุปคะแนนรวม
         self.score_description["Final score"] = (self.score, FULLSCORE)
+        print(f"Final score: {self.score}/{FULLSCORE}")
+        
+        self.debug_printed = True  # Mark debug as printed
         return self.score
-    
-    def score_5star(self):
-        # คำนวณคะแนนเต็มห้า แล้วปัดเลข
 
-        star = round((self.get_score() / FULLSCORE) * 5)
-        return star
+    # คำนวณดาว 5 คะแนน
+    def score_5star(self):
+        return round((self.score / FULLSCORE) * 5)
 
     def set_score(self, score):
         self.score = score
-    
+
     def get_score(self):
         return self.score
 
     def format_text(self):
-        # บันทึกคะแนนเป็น dictionary
+        # สร้างข้อความแสดงคะแนนแต่ละ part
+        labels = []
+        scores = []
+        for part, (sc, full) in self.score_description.items():
+            labels.append(part.capitalize())
+            scores.append(f"{sc} / {full} points")
+        return labels, scores
 
-        label_text = []
-        score_text = []
-        for part, (score, full) in self.score_description.items():
-            text = f"{part.capitalize()}"
-            label_text.append(text)
-
-            s_text = f"{score} / {full} points"
-            score_text.append(s_text)
-        return label_text, score_text
-    
     def get_des_to_render(self):
-        # สร้าง objetct ให้ text แต่ละบรรทัดที่ได้จาก format_text()
-
-        l_position = 244, 150
-        s_position = 520, 150
-        label_text, score_text = self.format_text()
-        label_obj = []
-        score_obj = []
-        for line in label_text: 
-            label_obj.append(self.font.render(line, True, self.fontcolor))
-        for line in score_text: 
-            score_obj.append(self.font.render(line, True, self.fontcolor))
-        return label_obj, score_obj, l_position, s_position
+        l_pos = (244, 150)
+        s_pos = (520, 150)
+        labels, scores = self.format_text()
+        label_surfs = [self.font.render(t, True, self.fontcolor) for t in labels]
+        score_surfs = [self.font.render(t, True, self.fontcolor) for t in scores]
+        return label_surfs, score_surfs, l_pos, s_pos
 
     def render(self, display):
-        # display text, ใส่ใน run
-        
-        label_obj, score_obj, l_position, s_position = self.get_des_to_render()
-        for line in range(len(label_obj)):
-            x = l_position[0]
-            y = l_position[1]+(line*self.fontsize)+(5*line)
-            display.blit(label_obj[line],(x, y))
-        for line in range(len(score_obj)):
-            x = s_position[0]
-            y = s_position[1]+(line*self.fontsize)+(5*line)
-            display.blit(score_obj[line],(x, y))
+        labels, scores, (lx, ly), (sx, sy) = self.get_des_to_render()
+        for idx, surf in enumerate(labels):
+            display.blit(surf, (lx, ly + idx * (self.fontsize + 5)))
+        for idx, surf in enumerate(scores):
+            display.blit(surf, (sx, sy + idx * (self.fontsize + 5)))

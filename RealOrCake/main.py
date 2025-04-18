@@ -38,7 +38,7 @@ class Game:
         # สร้าง state ต่าง ๆ
         self.start        = Start(self.screen, self.gsm, self.screen_w, self.screen_h, self.sound_manager)
         self.option_page  = OptionPage(self.screen, self.gsm, self.screen_w, self.screen_h, self.sound_manager)
-        self.random_cake  = RandomCake(self.screen, self.gsm, self.screen_w, self.screen_h, self.sound_manager)
+        self.random_cake  = RandomCake(self.screen, self.gsm, self.screen_w, self.screen_h, self.sound_manager)  # สร้าง RandomCake โดยส่ง gsm
         self.baking = BakingPage(self.screen, self.gsm, self.screen_w, self.screen_h, self.sound_manager)
         self.decoration   = Decoration(self.screen, self.gsm, self.screen_w, self.screen_h, self.sound_manager)
         self.score_page   = Score(self.screen, self.gsm, self.screen_w, self.screen_h, self.sound_manager)

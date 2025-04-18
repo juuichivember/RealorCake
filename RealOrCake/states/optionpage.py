@@ -24,8 +24,9 @@ class OptionPage:
 
     def enter(self):
         pygame.mixer.music.stop()
-        # สามารถโหลดเพลงเฉพาะสำหรับ OptionPage ได้ที่นี่
-        pass
+        pygame.mixer.music.load(os.path.join(BASE_PATH, "assets", "Sound", "SelectModePageBackground.mp3"))
+        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.play(-1)
 
     def run(self):
         self.display.blit(self.background, (0, 0))
