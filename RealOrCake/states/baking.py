@@ -14,25 +14,28 @@ BASE_PATH = get_base_path()
 
 class BakingPage:
     def __init__(self, screen, gsm: GameStateManager, sw, sh, sound_manager=None):
+        # Core references
         self.screen = screen
         self.gsm    = gsm
         self.sw, self.sh = sw, sh
         self.sound = sound_manager
 
         # State flags
-        self.step        = STEP_INGREDIENTS
-        self.ingredients = ['egg','sugar','vanilla_extract','baking_flour',
-                            'baking_powder','milk','butter','salt']
-        self.completed   = set()
-        self.persistent  = {}
-        self.no_persist  = {'salt'}
-        self.mix_ready   = False
-        self.mix_done    = False
-        self.cut_done    = False
-        self.dragging    = None
-        self.drag_offset = (0, 0)
+        self.step           = STEP_INGREDIENTS
+        self.ingredients    = ['egg','sugar','vanilla_extract','baking_flour',
+                               'baking_powder','milk','butter','salt']
+        self.completed      = set()
+        self.persistent     = {}
+        self.no_persist     = {'salt'}
+        self.mix_ready      = False
+        self.mix_done       = False
+        self.cut_done       = False
+        self.frost_done     = False
+        self.dragging       = None
+        self.drag_offset    = (0, 0)
+        self.current_flavor = None
 
-        # Map ingredient to animation folder
+        # Ingredient animation mapping
         self.anim_map = {
             'egg': '02_add_eggs',
             'sugar': '03_add_sugar',
@@ -46,70 +49,88 @@ class BakingPage:
 
         # Load mixing UI
         mix_base = os.path.join(BASE_PATH, 'assets', 'baking_elements', 'stage1_mixing', '01_start')
-        self.bg        = load_image(mix_base, 'mixing_backgroud.png', (sw, sh))
-        self.bar       = load_image(mix_base, 'ingredients_bar.png', (sw, sh))
-        self.bowl      = load_image(mix_base, 'bowl.png', (sw, sh))
+        self.bg        = load_image(mix_base, 'mixing_backgroud.png', (self.sw, self.sh))
+        self.bar       = load_image(mix_base, 'ingredients_bar.png', (self.sw, self.sh))
+        self.bowl      = load_image(mix_base, 'bowl.png', (self.sw, self.sh))
         self.bowl_rect = pygame.Rect(490, 474, 275, 170)
-        back_img       = load_image(mix_base, 'back_button.png', (sw, sh))
-        next_img       = load_image(mix_base, 'next_button.png', (sw, sh))
+        back_img       = load_image(mix_base, 'back_button.png', (self.sw, self.sh))
+        next_img       = load_image(mix_base, 'next_button.png', (self.sw, self.sh))
         self.btn_back  = Button(0, 0, back_img, 1)
         self.btn_next  = Button(0, 0, next_img, 1)
 
-        # Ingredient icons and animations
+        # Ingredient icons
         self.icon_buttons = {}
         self.icon_masks   = {}
-        self.anim_frames  = {}
         for ing in self.ingredients:
-            path = os.path.join(mix_base, f"{ing}.png")
-            img = pygame.image.load(path).convert_alpha()
-            img = pygame.transform.smoothscale(img, (sw, sh))
-            btn = Button(0, 0, img, 1)
+            img_path = os.path.join(mix_base, f"{ing}.png")
+            surf = pygame.image.load(img_path).convert_alpha()
+            surf = pygame.transform.smoothscale(surf, (self.sw, self.sh))
+            btn  = Button(0, 0, surf, 1)
             self.icon_buttons[ing] = btn
             self.icon_masks[ing]   = btn.mask
 
-        # Load ingredient animation frames
+        # Ingredient animations
+        self.anim_frames = {}
         for ing, folder in self.anim_map.items():
             anim_dir = os.path.join(BASE_PATH, 'assets', 'baking_elements', 'stage1_mixing', folder)
-            frames = []
+            frames   = []
             if os.path.isdir(anim_dir):
                 for fn in sorted(os.listdir(anim_dir)):
                     if fn.endswith('.png'):
                         frames.append(load_image(anim_dir, fn, (self.sw, self.sh)))
             self.anim_frames[ing] = frames
-            anim_dir = os.path.join(BASE_PATH, 'assets', 'baking_elements', 'stage1_mixing', folder)
-            frames = []
-            if os.path.isdir(anim_dir):
-                for fn in sorted(os.listdir(anim_dir)):
-                    if fn.endswith('.png'):
-                        frames.append(load_image(anim_dir, fn, (sw, sh)))
-            self.anim_frames[ing] = frames
 
-        # Load mix-it UI
+        # Mix-it UI
         mix_dir = os.path.join(BASE_PATH, 'assets', 'baking_elements', 'stage1_mixing', '10_mix_it')
-        self.mix_it_bar    = load_image(mix_dir, 'mix_it_bar.png', (sw, sh))
-        blender_img        = load_image(mix_dir, 'mix_it_blender.png', (sw, sh))
+        self.mix_it_bar    = load_image(mix_dir, 'mix_it_bar.png', (self.sw, self.sh))
+        blender_img        = load_image(mix_dir, 'mix_it_blender.png', (self.sw, self.sh))
         self.blender_btn   = Button(0, 0, blender_img, 1)
         self.mix_it_frames = []
         if os.path.isdir(mix_dir):
             for fn in sorted(os.listdir(mix_dir)):
                 if fn.startswith('mix_it_') and fn.endswith('.png') and fn not in ('mix_it_bar.png','mix_it_blender.png'):
-                    self.mix_it_frames.append(load_image(mix_dir, fn, (sw, sh)))
+                    self.mix_it_frames.append(load_image(mix_dir, fn, (self.sw, self.sh)))
 
-        # Load cutting UI
+        # Cutting UI
         cut_dir = os.path.join(BASE_PATH, 'assets', 'baking_elements', 'stage2_cutting')
-        self.cake_rect     = pygame.Rect(450, 420, 355, 225)
-        self.cutting_1     = load_image(cut_dir, 'cutting_1.png', (sw, sh))
-        knife_img          = load_image(cut_dir, 'knife.png', (sw, sh))
-        self.knife_btn     = Button(0, 0, knife_img, 1)
-        self.cut_frames    = [load_image(cut_dir, f'cutting_{i}.png', (sw, sh)) for i in range(2, 7)]
-        self.cut_final     = [load_image(cut_dir, fn, (sw, sh)) for fn in ('cutting_7.png','cutting_8.png')]
+        self.cake_rect   = pygame.Rect(450, 420, 355, 225)
+        self.cutting_1   = load_image(cut_dir, 'cutting_1.png', (self.sw, self.sh))
+        self.cutting_8   = load_image(cut_dir, 'cutting_8.png', (self.sw, self.sh))
+        knife_img        = load_image(cut_dir, 'knife.png', (self.sw, self.sh))
+        self.knife_btn   = Button(0, 0, knife_img, 1)
+        self.cut_frames  = [load_image(cut_dir, f'cutting_{i}.png', (self.sw, self.sh)) for i in range(2,7)]
+        self.cut_final   = [load_image(cut_dir, fn, (self.sw, self.sh)) for fn in ('cutting_7.png','cutting_8.png')]
+
+        # Frosting UI
+        frost_base         = os.path.join(BASE_PATH, 'assets', 'baking_elements', 'stage3_creaming')
+        self.piping_bar     = load_image(frost_base, 'piping_bar.png', (self.sw, self.sh))
+        self.reset_img      = load_image(frost_base, 'reset_flavour_button.png', (self.sw, self.sh))
+        self.reset_btn      = Button(0, 0, self.reset_img, 1)
+        self.piping_flavors = ['blueberry','chocolate','orange','strawberry','vanilla']
+        self.piping_buttons = {}
+        self.piping_masks   = {}
+        for flavor in self.piping_flavors:
+            img = load_image(frost_base, f'{flavor}_piping.png', (self.sw, self.sh))
+            btn = Button(0, 0, img, 1)
+            self.piping_buttons[flavor] = btn
+            self.piping_masks[flavor]   = btn.mask
+        self.frost_frames = {}
+        for flavor in self.piping_flavors:
+            suf = 'bluberry' if flavor=='blueberry' else flavor
+            frames = []
+            for subdir, fn_template in [('step_2_smooth_cream', f'smooth_cream_{suf}.png'),
+                                       ('step1_spread_cream', f'spread_cream_{suf}.png'),
+                                       ('step3_assemble_cake', f'assemble_cake_{suf}.png')]:
+                frames.append(load_image(os.path.join(frost_base, subdir), fn_template, (self.sw, self.sh)))
+            self.frost_frames[flavor] = frames
 
     def enter(self):
-        self.step        = STEP_INGREDIENTS
+        self.step           = STEP_INGREDIENTS
         self.completed.clear()
         self.persistent.clear()
-        self.mix_ready  = self.mix_done = self.cut_done = False
-        self.dragging   = None
+        self.mix_ready      = self.mix_done = self.cut_done = self.frost_done = False
+        self.dragging       = None
+        self.current_flavor = None
 
     def run(self):
         if self.step == STEP_INGREDIENTS:
@@ -118,61 +139,82 @@ class BakingPage:
             self.draw_mix_it()
         elif self.step == STEP_CUTTING:
             self.draw_cutting()
+        elif self.step == STEP_FROSTING:
+            self.draw_frosting()
         pygame.display.flip()
 
     def draw_mixing(self):
-        self.screen.blit(self.bg, (0, 0))
-        self.screen.blit(self.bar, (0, 0))
-        self.screen.blit(self.bowl, (0, 0))
+        self.screen.blit(self.bg, (0,0))
+        self.screen.blit(self.bar, (0,0))
+        self.screen.blit(self.bowl,(0,0))
         for surf in self.persistent.values():
-            self.screen.blit(surf, (0, 0))
-        mx, my = pygame.mouse.get_pos()
-        for ing, btn in self.icon_buttons.items():
+            self.screen.blit(surf,(0,0))
+        mx,my = pygame.mouse.get_pos()
+        for ing,btn in self.icon_buttons.items():
             mask = self.icon_masks[ing]
             if ing in self.completed:
                 glow = mask.to_surface(setcolor=(255,255,0,180), unsetcolor=(0,0,0,0))
-                self.screen.blit(glow, (0, 0))
-                self.screen.blit(btn.image, (0, 0))
+                self.screen.blit(glow,(0,0))
+                self.screen.blit(btn.image,(0,0))
             else:
                 btn.draw(self.screen)
-                if mask.get_at((mx, my)):
+                if mask.get_at((mx,my)):
                     glow = mask.to_surface(setcolor=(255,255,0,100), unsetcolor=(0,0,0,0))
-                    self.screen.blit(glow, (0, 0))
+                    self.screen.blit(glow,(0,0))
         self.btn_back.draw(self.screen)
         if self.mix_ready:
             self.btn_next.draw(self.screen)
         if self.dragging:
             img = self.icon_buttons[self.dragging].image
-            ox, oy = self.drag_offset
-            self.screen.blit(img, (mx-ox, my-oy))
+            ox,oy = self.drag_offset
+            self.screen.blit(img,(mx-ox,my-oy))
 
     def draw_mix_it(self):
-        self.screen.blit(self.bg, (0, 0))
-        self.screen.blit(self.mix_it_bar, (0, 0))
+        self.screen.blit(self.bg,(0,0))
+        self.screen.blit(self.mix_it_bar,(0,0))
         if self.mix_it_frames:
             frame = self.mix_it_frames[-1] if self.mix_done else self.mix_it_frames[0]
-            self.screen.blit(frame, (0, 0))
+            self.screen.blit(frame,(0,0))
         self.blender_btn.draw(self.screen)
         if self.mix_done:
             self.btn_next.draw(self.screen)
 
     def draw_cutting(self):
-        self.screen.blit(self.bg, (0, 0))
+        self.screen.blit(self.bg,(0,0))
         if not self.cut_done and self.dragging is None:
-            # initial cake
-            self.screen.blit(self.cutting_1, (0, 0))
+            self.screen.blit(self.cutting_1,(0,0))
             self.knife_btn.draw(self.screen)
         elif self.dragging == 'knife':
-            # knife follows mouse
-            mx, my = pygame.mouse.get_pos()
-            ox, oy = self.drag_offset
-            self.screen.blit(self.cutting_1, (0, 0))
-            self.screen.blit(self.knife_btn.image, (mx-ox, my-oy))
+            mx,my = pygame.mouse.get_pos()
+            ox,oy = self.drag_offset
+            self.screen.blit(self.cutting_1,(0,0))
+            self.screen.blit(self.knife_btn.image,(mx-ox,my-oy))
         else:
-            # final slices
             for img in self.cut_final:
-                self.screen.blit(img, (0, 0))
+                self.screen.blit(img,(0,0))
             self.btn_next.draw(self.screen)
+
+    def draw_frosting(self):
+        self.screen.blit(self.bg,(0,0))
+        self.screen.blit(self.cutting_8,(0,0))
+        self.reset_btn.draw(self.screen)
+        mx,my = pygame.mouse.get_pos()
+        if self.frost_done and self.current_flavor:
+            assemble = self.frost_frames[self.current_flavor][2]
+            self.screen.blit(assemble,(0,0))
+            self.btn_next.draw(self.screen)
+        else:
+            self.screen.blit(self.piping_bar,(0,0))
+            for flavor,btn in self.piping_buttons.items():
+                mask = self.piping_masks[flavor]
+                btn.draw(self.screen)
+                if mask.get_at((mx,my)):
+                    glow = mask.to_surface(setcolor=(255,255,0,100),unsetcolor=(0,0,0,0))
+                    self.screen.blit(glow,(0,0))
+            if self.dragging in self.piping_flavors:
+                mx,my = pygame.mouse.get_pos()
+                ox,oy = self.drag_offset
+                self.screen.blit(self.piping_buttons[self.dragging].image,(mx-ox,my-oy))
 
     def handle_events(self, e):
         if self.step == STEP_INGREDIENTS:
@@ -181,6 +223,8 @@ class BakingPage:
             self._handle_mix_it(e)
         elif self.step == STEP_CUTTING:
             self._handle_cutting(e)
+        elif self.step == STEP_FROSTING:
+            self._handle_frosting(e)
 
     def _handle_ing(self, e):
         if e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
@@ -190,16 +234,16 @@ class BakingPage:
             if self.mix_ready and self.btn_next.mask.get_at(e.pos):
                 self.step = STEP_MIX_IT
                 return
-            mx, my = e.pos
-            for ing, mask in self.icon_masks.items():
-                if ing not in self.completed and mask.get_at((mx, my)):
-                    self.dragging, self.drag_offset = ing, (mx, my)
+            mx,my = e.pos
+            for ing,mask in self.icon_masks.items():
+                if ing not in self.completed and mask.get_at((mx,my)):
+                    self.dragging,self.drag_offset = ing,(mx,my)
                     break
         elif e.type == pygame.MOUSEBUTTONUP and e.button == 1 and self.dragging:
-            x, y = e.pos
+            x,y = e.pos
             ing = self.dragging
             self.dragging = None
-            if self.bowl_rect.collidepoint(x, y):
+            if self.bowl_rect.collidepoint(x,y):
                 self.completed.add(ing)
                 self.play_animation(ing)
                 if set(self.ingredients) == self.completed:
@@ -228,47 +272,77 @@ class BakingPage:
                 self.play_cut_animation()
                 self.cut_done = True
 
-    def play_animation(self, name):
+    def _handle_frosting(self, e):
+        if e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
+            # Next to decoration if frosting done
+            if self.frost_done and self.btn_next.mask.get_at(e.pos):
+                self.gsm.set_state('decoration')
+                return
+            # Reset frosting to choose again
+            if self.reset_btn.mask.get_at(e.pos):
+                self.frost_done = False
+                self.current_flavor = None
+                return
+            # Start dragging piping bag
+            if not self.frost_done:
+                for flavor, mask in self.piping_masks.items():
+                    if mask.get_at(e.pos):
+                        self.dragging, self.drag_offset = flavor, e.pos
+                        break
+        elif e.type == pygame.MOUSEBUTTONUP and e.button == 1 and self.dragging in self.piping_flavors:
+            x, y = e.pos
+            flavor = self.dragging
+            self.dragging = None
+            # Apply frosting only when dropped in cake area
+            if self.cake_rect.collidepoint(x, y):
+                for frame in self.frost_frames[flavor]:
+                    self.screen.blit(self.bg, (0,0))
+                    self.screen.blit(self.cutting_8, (0,0))
+                    self.screen.blit(frame, (0,0))
+                    pygame.display.flip()
+                    pygame.time.delay(300)
+                self.current_flavor = flavor
+                self.frost_done = True
+    def play_animation(self,name):
         frames = self.anim_frames[name]
-        delay = 800
-        base  = self._make_snapshot()
+        base   = self._make_snapshot()
         for f in frames:
-            self.screen.blit(base, (0, 0))
-            self.screen.blit(f, (0, 0))
+            self.screen.blit(base,(0,0))
+            self.screen.blit(f,(0,0))
             pygame.display.flip()
-            pygame.time.delay(delay)
+            pygame.time.delay(300)
         if name not in self.no_persist and frames:
             self.persistent[name] = frames[-1]
 
     def play_mix_it_animation(self):
         for f in self.mix_it_frames:
-            self.screen.blit(self.bg, (0, 0))
-            self.screen.blit(self.mix_it_bar, (0, 0))
-            self.screen.blit(f, (0, 0))
+            self.screen.blit(self.bg,(0,0))
+            self.screen.blit(self.mix_it_bar,(0,0))
+            self.screen.blit(f,(0,0))
             pygame.display.flip()
-            pygame.time.delay(500)
+            pygame.time.delay(300)
 
     def play_cut_animation(self):
         for f in self.cut_frames:
-            self.screen.blit(self.bg, (0, 0))
-            self.screen.blit(f, (0, 0))
+            self.screen.blit(self.bg,(0,0))
+            self.screen.blit(f,(0,0))
             pygame.display.flip()
-            pygame.time.delay(500)
+            pygame.time.delay(300)
 
     def _make_snapshot(self):
-        base = pygame.Surface((self.sw, self.sh), pygame.SRCALPHA)
-        base.blit(self.bg, (0, 0))
-        base.blit(self.bar, (0, 0))
-        base.blit(self.bowl, (0, 0))
-        for surf in self.persistent.values():
-            base.blit(surf, (0, 0))
-        for ing, btn in self.icon_buttons.items():
+        base = pygame.Surface((self.sw,self.sh),pygame.SRCALPHA)
+        base.blit(self.bg,(0,0))
+        base.blit(self.bar,(0,0))
+        base.blit(self.bowl,(0,0))
+        for surf in self.persistent.values(): base.blit(surf,(0,0))
+        for ing,btn in self.icon_buttons.items():
             if ing in self.completed:
-                glow = self.icon_masks[ing].to_surface(setcolor=(255,255,0,180), unsetcolor=(0,0,0,0))
-                base.blit(glow, (0, 0))
-            base.blit(btn.image, (0, 0))
+                glow = self.icon_masks[ing].to_surface(setcolor=(255,255,0,180),unsetcolor=(0,0,0,0))
+                base.blit(glow,(0,0))
+            base.blit(btn.image,(0,0))
         self.btn_back.draw(base)
         return base
 
     def exit(self):
         pass
+
