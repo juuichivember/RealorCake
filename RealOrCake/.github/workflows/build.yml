@@ -1,0 +1,53 @@
+name: Build NamkhingCake
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - run: pip install pyinstaller
+
+      - run: |
+          pyinstaller --onefile --windowed \
+            --add-data "assets;assets" \
+            --add-data "states;states" \
+            --add-data "decoModule;decoModule" \
+            main.py
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: NamkhingCake-Windows
+          path: dist/main.exe
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - run: pip install pyinstaller
+
+      - run: |
+          pyinstaller --onefile \
+            --add-data "assets:assets" \
+            --add-data "states:states" \
+            --add-data "decoModule:decoModule" \
+            main.py
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: NamkhingCake-macOS
+          path: dist/main
