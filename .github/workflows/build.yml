@@ -8,6 +8,7 @@ on:
 
 jobs:
   build-windows:
+    name: Build Windows .exe
     runs-on: windows-latest
 
     defaults:
@@ -15,27 +16,33 @@ jobs:
         working-directory: RealOrCake
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v4
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - run: pip install pyinstaller
+      - name: Install PyInstaller
+        run: pip install pyinstaller
 
-      - run: |
+      - name: Build Windows executable
+        run: |
           pyinstaller --onefile --windowed \
             --add-data "assets;assets" \
             --add-data "states;states" \
             --add-data "decoModule;decoModule" \
             main.py
 
-      - uses: actions/upload-artifact@v3
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v3
         with:
           name: NamkhingCake-Windows
-          path: dist/main.exe
+          path: RealOrCake/dist/main.exe
 
   build-macos:
+    name: Build macOS binary
     runs-on: macos-latest
 
     defaults:
@@ -43,22 +50,27 @@ jobs:
         working-directory: RealOrCake
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v4
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - run: pip install pyinstaller
+      - name: Install PyInstaller
+        run: pip install pyinstaller
 
-      - run: |
+      - name: Build macOS binary
+        run: |
           pyinstaller --onefile \
             --add-data "assets:assets" \
             --add-data "states:states" \
             --add-data "decoModule:decoModule" \
             main.py
 
-      - uses: actions/upload-artifact@v3
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v3
         with:
           name: NamkhingCake-macOS
-          path: dist/main
+          path: RealOrCake/dist/main
