@@ -1,54 +1,55 @@
+# cakeDecorator.py
 import pygame
 from decoModule import load_cake_part
 
-# ตัวเพิ่มครีมกับท็อปปิ้งบน object Cake()
-
 class CakeDecorator:
     def __init__(self, cake, display):
+        """
+        cake: ออบเจกต์ Cake() ที่เก็บ parts
+        display: surface ที่จะใช้ blit รูป
+        """
         self.cake = cake
         self.display = display
-        self.decorations = {}  # Stores decoration images to display
+        # cache เก็บภาพที่สเกลแล้วตาม part เพื่อไม่ต้องสเกลซ้ำ
+        self.cache = {}
 
-    def add_decoration(self, part, type, color):
-        # Apply a decoration to the cake and load the corresponding image.
-        # เพิ่ม layer แต่ละครั้งที่ผู้เล่นกดครีมหรือท็อปปิ้งอะไร
-
-        if part in self.cake.parts:
-            # If the part already exists, update its color
-            self.cake.parts[part] = (type, color)
-            img = load_cake_part(part, type, color)
-            if img:
-                self.decorations[part] = img
-            else:
-                pass
-                #print(f"Failed to load decoration: {part} {type} in {color}")
-        else:
-            # If the part doesn't exist, add it
-            self.cake.add_part(part, type, color)
-            img = load_cake_part(part, type, color)
-
-            if img:
-                self.decorations[part] = img
-            else:
-                pass
-                #print(f"Failed to load decoration: {part} {type} in {color}")
+    def add_decoration(self, part, type, color, scale):
+        """
+        - part: ชื่อ layer (เช่น "base", "topping" ฯลฯ)
+        - type: subtype ของ layer (เช่น "feather", "wave")
+        - color: สี (เช่น "vanilla", "milk")
+        - scale: tuple (w,h) ขนาดที่ต้องการสเกลรูป
+        """
+        # บันทึก part ลงใน cake.parts
+        self.cake.parts[part] = (type, color)
+        # โหลดรูปดิบ
+        img = load_cake_part(part, type, color)
+        if not img:
+            return
+        # สเกลแล้วเก็บลง cache
+        surf = pygame.transform.smoothscale(img, scale)
+        self.cache[part] = surf
 
     def decorate(self, x, y, scale):
-        # เพิ่มใน run เพื่อโชว์ภาพแต่ละเลเยอร์
-        cake_draw_order = ["base", "topcream", "lowercream", "middlecream", "behindcream", "topping"]
-
-        for part in cake_draw_order:
+        """
+        วาดทุก layer ตามลำดับเสมอ (รวม base ถ้ายังไม่ cache)
+        - x,y: พิกัดมุมซ้ายบนในการ blit
+        - scale: (w,h) ขนาดในการสเกลแต่ละภาพ
+        """
+        draw_order = ["base", "topcream", "lowercream",
+                      "middlecream", "behindcream", "topping"]
+        for part in draw_order:
+            # ถ้า part ถูกกำหนดใน cake.parts
             if part in self.cake.parts:
-                part_type = self.cake.parts[part][0]
-                part_color = self.cake.parts[part][1]
-                img = load_cake_part(part, part_type, part_color)
-                if img:
-                    img = pygame.transform.smoothscale(img, scale)
-                    self.display.blit(img, (x, y))
-                else:
-                    pass
-                    #print(f"Failed to load image for {part} ({part_type}, {part_color})")
-            else:
-                pass
-
-
+                # มีใน cache หรือยัง
+                surf = self.cache.get(part)
+                if surf is None:
+                    ptype, color = self.cake.parts[part]
+                    img = load_cake_part(part, ptype, color)
+                    if not img:
+                        continue
+                    surf = pygame.transform.smoothscale(img, scale)
+                    # เก็บใน cache เพื่อรอบหน้า
+                    self.cache[part] = surf
+                # วาด
+                self.display.blit(surf, (x, y))

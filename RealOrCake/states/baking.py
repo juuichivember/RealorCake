@@ -19,12 +19,13 @@ class BakingPage:
         self.gsm    = gsm
         self.sw, self.sh = sw, sh
         self.sound = sound_manager
-        self.filling_selected = None  # กำหนดตัวแปรเก็บค่า filling ที่ผู้เล่นเลือก
 
         # State flags
         self.step           = STEP_INGREDIENTS
-        self.ingredients    = ['egg','sugar','vanilla_extract','baking_flour',
-                               'baking_powder','milk','butter','salt']
+        self.ingredients    = [
+            'egg','sugar','vanilla_extract','baking_flour',
+            'baking_powder','milk','butter','salt'
+        ]
         self.completed      = set()
         self.persistent     = {}
         self.no_persist     = {'salt'}
@@ -49,7 +50,10 @@ class BakingPage:
         }
 
         # Load mixing UI
-        mix_base = os.path.join(BASE_PATH, 'assets', 'baking_elements', 'stage1_mixing', '01_start')
+        mix_base = os.path.join(
+            BASE_PATH, 'assets', 'baking_elements',
+            'stage1_mixing', '01_start'
+        )
         self.bg        = load_image(mix_base, 'mixing_backgroud.png', (self.sw, self.sh))
         self.bar       = load_image(mix_base, 'ingredients_bar.png', (self.sw, self.sh))
         self.bowl      = load_image(mix_base, 'bowl.png', (self.sw, self.sh))
@@ -73,8 +77,11 @@ class BakingPage:
         # Ingredient animations
         self.anim_frames = {}
         for ing, folder in self.anim_map.items():
-            anim_dir = os.path.join(BASE_PATH, 'assets', 'baking_elements', 'stage1_mixing', folder)
-            frames   = []
+            anim_dir = os.path.join(
+                BASE_PATH, 'assets', 'baking_elements',
+                'stage1_mixing', folder
+            )
+            frames = []
             if os.path.isdir(anim_dir):
                 for fn in sorted(os.listdir(anim_dir)):
                     if fn.endswith('.png'):
@@ -82,7 +89,10 @@ class BakingPage:
             self.anim_frames[ing] = frames
 
         # Mix-it UI
-        mix_dir = os.path.join(BASE_PATH, 'assets', 'baking_elements', 'stage1_mixing', '10_mix_it')
+        mix_dir = os.path.join(
+            BASE_PATH, 'assets', 'baking_elements',
+            'stage1_mixing', '10_mix_it'
+        )
         self.mix_it_bar    = load_image(mix_dir, 'mix_it_bar.png', (self.sw, self.sh))
         blender_img        = load_image(mix_dir, 'mix_it_blender.png', (self.sw, self.sh))
         self.blender_btn   = Button(0, 0, blender_img, 1)
@@ -93,20 +103,32 @@ class BakingPage:
                     self.mix_it_frames.append(load_image(mix_dir, fn, (self.sw, self.sh)))
 
         # Cutting UI
-        cut_dir = os.path.join(BASE_PATH, 'assets', 'baking_elements', 'stage2_cutting')
+        cut_dir = os.path.join(
+            BASE_PATH, 'assets', 'baking_elements',
+            'stage2_cutting'
+        )
         self.cake_rect   = pygame.Rect(450, 420, 355, 225)
         self.cutting_1   = load_image(cut_dir, 'cutting_1.png', (self.sw, self.sh))
         self.cutting_8   = load_image(cut_dir, 'cutting_8.png', (self.sw, self.sh))
         knife_img        = load_image(cut_dir, 'knife.png', (self.sw, self.sh))
         self.knife_btn   = Button(0, 0, knife_img, 1)
-        self.cut_frames  = [load_image(cut_dir, f'cutting_{i}.png', (self.sw, self.sh)) for i in range(2,7)]
-        self.cut_final   = [load_image(cut_dir, fn, (self.sw, self.sh)) for fn in ('cutting_7.png','cutting_8.png')]
+        self.cut_frames  = [
+            load_image(cut_dir, f'cutting_{i}.png', (self.sw, self.sh))
+            for i in range(2,7)
+        ]
+        self.cut_final = [
+            load_image(cut_dir, fn, (self.sw, self.sh))
+            for fn in ('cutting_7.png','cutting_8.png')
+        ]
 
         # Frosting UI
-        frost_base         = os.path.join(BASE_PATH, 'assets', 'baking_elements', 'stage3_creaming')
-        self.piping_bar     = load_image(frost_base, 'piping_bar.png', (self.sw, self.sh))
-        self.reset_img      = load_image(frost_base, 'reset_flavour_button.png', (self.sw, self.sh))
-        self.reset_btn      = Button(0, 0, self.reset_img, 1)
+        frost_base       = os.path.join(
+            BASE_PATH, 'assets', 'baking_elements',
+            'stage3_creaming'
+        )
+        self.piping_bar   = load_image(frost_base, 'piping_bar.png', (self.sw, self.sh))
+        self.reset_img    = load_image(frost_base, 'reset_flavour_button.png', (self.sw, self.sh))
+        self.reset_btn    = Button(0, 0, self.reset_img, 1)
         self.piping_flavors = ['blueberry','chocolate','orange','strawberry','vanilla']
         self.piping_buttons = {}
         self.piping_masks   = {}
@@ -119,11 +141,20 @@ class BakingPage:
         for flavor in self.piping_flavors:
             suf = 'bluberry' if flavor=='blueberry' else flavor
             frames = []
-            for subdir, fn_template in [('step_2_smooth_cream', f'smooth_cream_{suf}.png'),
-                                       ('step1_spread_cream', f'spread_cream_{suf}.png'),
-                                       ('step3_assemble_cake', f'assemble_cake_{suf}.png')]:
+            for subdir, fn_template in [
+                ('step_2_smooth_cream', f'smooth_cream_{suf}.png'),
+                ('step1_spread_cream', f'spread_cream_{suf}.png'),
+                ('step3_assemble_cake', f'assemble_cake_{suf}.png'),
+            ]:
                 frames.append(load_image(os.path.join(frost_base, subdir), fn_template, (self.sw, self.sh)))
             self.frost_frames[flavor] = frames
+
+    @staticmethod
+    def _safe_mask_get(mask, pos):
+        """คืน True ก็ต่อเมื่อ pos อยู่ในขอบ mask และ mask ที่ตำแหน่งนั้นเป็น 1"""
+        x, y = pos
+        w, h = mask.get_size()
+        return 0 <= x < w and 0 <= y < h and mask.get_at(pos)
 
     def enter(self):
         self.step           = STEP_INGREDIENTS
@@ -133,7 +164,8 @@ class BakingPage:
         self.dragging       = None
         self.current_flavor = None
         pygame.mixer.music.stop()
-        pygame.mixer.music.load(os.path.join(BASE_PATH, "assets", "Sound", "baking_background.mp3"))
+        pygame.mixer.music.load(os.path.join(
+            BASE_PATH, "assets", "Sound", "baking_background.mp3"))
         pygame.mixer.music.set_volume(0.6)
         pygame.mixer.music.play(-1)
 
@@ -154,25 +186,36 @@ class BakingPage:
         self.screen.blit(self.bowl,(0,0))
         for surf in self.persistent.values():
             self.screen.blit(surf,(0,0))
-        mx,my = pygame.mouse.get_pos()
-        for ing,btn in self.icon_buttons.items():
+
+        mx, my = pygame.mouse.get_pos()
+        for ing, btn in self.icon_buttons.items():
             mask = self.icon_masks[ing]
             if ing in self.completed:
-                glow = mask.to_surface(setcolor=(255,255,0,180), unsetcolor=(0,0,0,0))
-                self.screen.blit(glow,(0,0))
-                self.screen.blit(btn.image,(0,0))
+                glow = mask.to_surface(
+                    setcolor=(255,255,0,180),
+                    unsetcolor=(0,0,0,0)
+                )
+                self.screen.blit(glow, (0,0))
+                self.screen.blit(btn.image, (0,0))
             else:
                 btn.draw(self.screen)
-                if mask.get_at((mx,my)):
-                    glow = mask.to_surface(setcolor=(255,255,0,100), unsetcolor=(0,0,0,0))
-                    self.screen.blit(glow,(0,0))
+                if self._safe_mask_get(mask, (mx, my)):
+                    glow = mask.to_surface(
+                        setcolor=(255,255,0,100),
+                        unsetcolor=(0,0,0,0)
+                    )
+                    self.screen.blit(glow, (0,0))
+
         self.btn_back.draw(self.screen)
         if self.mix_ready:
             self.btn_next.draw(self.screen)
+
+        # วาดไอเท็มที่กำลังลาก (ไม่ clamp)
         if self.dragging:
             img = self.icon_buttons[self.dragging].image
-            ox,oy = self.drag_offset
-            self.screen.blit(img,(mx-ox,my-oy))
+            ox, oy = self.drag_offset
+            px, py = mx - ox, my - oy
+            self.screen.blit(img, (px, py))
 
     def draw_mix_it(self):
         self.screen.blit(self.bg, (0, 0))
@@ -181,61 +224,73 @@ class BakingPage:
             frame = self.mix_it_frames[-1] if self.mix_done else self.mix_it_frames[0]
             self.screen.blit(frame, (0, 0))
         self.blender_btn.draw(self.screen)
-        
-        # เพิ่มการแสดงแสง (glow) สำหรับ blender
+
         mx, my = pygame.mouse.get_pos()
-        if self.blender_btn.mask.get_at((mx, my)):
-            glow = self.blender_btn.mask.to_surface(setcolor=(255, 255, 0, 100), unsetcolor=(0, 0, 0, 0))
+        mask = self.blender_btn.mask
+        if self._safe_mask_get(mask, (mx, my)):
+            glow = mask.to_surface(
+                setcolor=(255,255,0,100),
+                unsetcolor=(0,0,0,0)
+            )
             self.screen.blit(glow, (0, 0))
-        
+
         if self.mix_done:
             self.btn_next.draw(self.screen)
 
     def draw_cutting(self):
         self.screen.blit(self.bg, (0, 0))
+        mx, my = pygame.mouse.get_pos()
+
         if not self.cut_done and self.dragging is None:
             self.screen.blit(self.cutting_1, (0, 0))
             self.knife_btn.draw(self.screen)
-            
-            # เพิ่มการแสดงแสง (glow) สำหรับ knife
-            mx, my = pygame.mouse.get_pos()
-            if self.knife_btn.mask.get_at((mx, my)):
-                glow = self.knife_btn.mask.to_surface(setcolor=(255, 255, 0, 100), unsetcolor=(0, 0, 0, 0))
+            mask = self.knife_btn.mask
+            if self._safe_mask_get(mask, (mx, my)):
+                glow = mask.to_surface(
+                    setcolor=(255,255,0,100),
+                    unsetcolor=(0,0,0,0)
+                )
                 self.screen.blit(glow, (0, 0))
+
         elif self.dragging == 'knife':
-            mx, my = pygame.mouse.get_pos()
             ox, oy = self.drag_offset
+            px, py = mx - ox, my - oy
             self.screen.blit(self.cutting_1, (0, 0))
-            self.screen.blit(self.knife_btn.image, (mx - ox, my - oy))
+            self.screen.blit(self.knife_btn.image, (px, py))
         else:
             for img in self.cut_final:
                 self.screen.blit(img, (0, 0))
             self.btn_next.draw(self.screen)
 
-
     def draw_frosting(self):
         self.screen.blit(self.bg,(0,0))
         self.screen.blit(self.cutting_8,(0,0))
         self.reset_btn.draw(self.screen)
-        mx,my = pygame.mouse.get_pos()
+
+        mx, my = pygame.mouse.get_pos()
         if self.frost_done and self.current_flavor:
             assemble = self.frost_frames[self.current_flavor][2]
             self.screen.blit(assemble,(0,0))
             self.btn_next.draw(self.screen)
         else:
             self.screen.blit(self.piping_bar,(0,0))
-            for flavor,btn in self.piping_buttons.items():
+            for flavor, btn in self.piping_buttons.items():
                 mask = self.piping_masks[flavor]
                 btn.draw(self.screen)
-                if mask.get_at((mx,my)):
-                    glow = mask.to_surface(setcolor=(255,255,0,100),unsetcolor=(0,0,0,0))
+                if self._safe_mask_get(mask, (mx, my)):
+                    glow = mask.to_surface(
+                        setcolor=(255,255,0,100),
+                        unsetcolor=(0,0,0,0)
+                    )
                     self.screen.blit(glow,(0,0))
+
             if self.dragging in self.piping_flavors:
-                mx,my = pygame.mouse.get_pos()
-                ox,oy = self.drag_offset
-                self.screen.blit(self.piping_buttons[self.dragging].image,(mx-ox,my-oy))
+                ox, oy = self.drag_offset
+                px, py = mx - ox, my - oy
+                self.screen.blit(self.piping_buttons[self.dragging].image,(px, py))
 
     def handle_events(self, e):
+        # ไม่ยกเลิกการลากเมื่อเมาส์ออกนอกหน้าจอ
         if self.step == STEP_INGREDIENTS:
             self._handle_ing(e)
         elif self.step == STEP_MIX_IT:
