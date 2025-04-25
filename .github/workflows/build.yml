@@ -1,3 +1,4 @@
+# File: .github/workflows/build-macos.yml
 name: Build macOS Release
 
 on:
@@ -8,11 +9,6 @@ on:
 jobs:
   build-macos:
     runs-on: macos-latest
-
-    # ทุกคำสั่ง run จะรันในโฟลเดอร์ RealOrCake
-    defaults:
-      run:
-        working-directory: RealOrCake
 
     steps:
       - name: Checkout code
