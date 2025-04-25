@@ -1,4 +1,4 @@
-name: Build NamkhingCake
+name: Build Release
 
 on:
   push:
@@ -6,76 +6,56 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  build-windows:
-    name: Build Windows .exe
-    runs-on: windows-latest
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
 
-    defaults:
-      run:
-        working-directory: RealOrCake
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
 
     steps:
-      - name: "Checkout code"
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: "Setup Python"
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: "Install PyInstaller"
+      - name: Install PyInstaller
         run: pip install pyinstaller
 
-      - name: "Build Windows executable"
+      - name: Build executable
         run: |
-          pyinstaller --onefile --windowed \
-            --add-data "assets;assets" \
-            --add-data "states;states" \
-            --add-data "decoModule;decoModule" \
-            main.py
+          # เข้าไปยังโฟลเดอร์ที่มี main.py
+          cd RealOrCake
+          # ถ้าเป็น Windows ให้เพิ่ม --windowed
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            pyinstaller --onefile --windowed \
+              --add-data "assets;assets" \
+              --add-data "states;states" \
+              --add-data "decoModule;decoModule" \
+              main.py
+          else
+            pyinstaller --onefile \
+              --add-data "assets:assets" \
+              --add-data "states:states" \
+              --add-data "decoModule:decoModule" \
+              main.py
+          fi
 
-      - name: "Debug: list dist directory"
-        run: dir dist
-
-      - name: "Upload Windows artifact"
-        uses: actions/upload-artifact@v3.1.3
-        with:
-          name: NamkhingCake-Windows
-          path: dist/**
-
-  build-macos:
-    name: Build macOS binary
-    runs-on: macos-latest
-
-    defaults:
-      run:
-        working-directory: RealOrCake
-
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v3
-
-      - name: "Setup Python"
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: "Install PyInstaller"
-        run: pip install pyinstaller
-
-      - name: "Build macOS binary"
+      - name: List dist folder
         run: |
-          pyinstaller --onefile \
-            --add-data "assets:assets" \
-            --add-data "states:states" \
-            --add-data "decoModule:decoModule" \
-            main.py
+          echo ">>> Contents of RealOrCake/dist"
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            dir RealOrCake\dist
+          else
+            ls RealOrCake/dist
+          fi
 
-      - name: "Debug: list dist directory"
-        run: ls dist
-
-      - name: "Upload macOS artifact"
-        uses: actions/upload-artifact@v3.1.3
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
         with:
-          name: NamkhingCake-macOS
-          path: dist/**
+          name: NamkhingCake-${{ matrix.os }}
+          path: RealOrCake/dist/**
