@@ -2,22 +2,32 @@ from cake import Cake
 from randomizeCake import RandomizeCake
 
 # State Manager ของ State หลัก ใน state.py
-
 class GameStateManager():
     # Constructor
-    def __init__(self, currentState):
+    def __init__(self, currentState, gsm=None):
         self.currentState = currentState
         self.cake = Cake()
-        self.random_cake = RandomizeCake()
+
+        # หากไม่ได้ส่ง gsm เข้ามา ให้สร้างตัวใหม่
+        if gsm:
+            self.gsm = gsm  # ใช้ gsm ที่ส่งเข้ามา
+        else:
+            self.gsm = self  # ถ้าไม่มี gsm ให้ใช้ตัวเองเป็น gsm (ใช้ self เป็นค่า default)
+
+        # สร้าง RandomizeCake โดยส่ง gsm ไป
+        self.random_cake = RandomizeCake(self.gsm)  # ส่ง gsm ให้ RandomizeCake
+        
         self.event = None
         self.alert = None
         self.alert_active = False
-    
-    # Accessor
+        self.mode = 'random'  # เพิ่ม attribute สำหรับเก็บ mode (default: random)
+        self.flavor = None  # เพิ่มการเก็บ flavor ที่เลือก
+
+    # Accessor สำหรับ state
     def get_state(self):
         return self.currentState
     
-    # Mutator
+    # Mutator สำหรับ state
     def set_state(self, state):
         self.currentState = state
 
@@ -46,8 +56,8 @@ class GameStateManager():
         self.alert_active = alert_active
 
     def reset(self):
-        self.cake.reset()
-        self.set_cake(None)
+        # สร้าง Cake ใหม่ แทนการตั้ง None
+        self.cake = Cake()
 
     def get_randomcake(self):
         return self.random_cake
@@ -56,5 +66,21 @@ class GameStateManager():
         self.random_cake = random_cake
     
     def reset_randomcake(self):
-        self.random_cake.reset()
-        self.set_randomcake(None)
+        # สร้าง RandomizeCake ใหม่ แทนการตั้ง None
+        self.random_cake = RandomizeCake(self.gsm)
+
+    # ฟังก์ชันเพื่อเก็บ flavor ที่เลือก
+    def set_flavor(self, f):
+        self.flavor = f
+        print(f"[Debug] Flavor set to: {self.flavor}")  # Debug เพื่อยืนยันการตั้งค่า flavor
+
+    # ฟังก์ชันเพื่อดึงค่า flavor ที่เก็บไว้
+    def get_flavor(self):
+        return self.flavor
+    
+    # Accessor และ Mutator สำหรับ mode
+    def get_mode(self):
+        return self.mode
+
+    def set_mode(self, mode):
+        self.mode = mode

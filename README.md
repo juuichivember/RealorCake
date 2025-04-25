@@ -22,6 +22,31 @@ A repository of a cake decoration game called 'Namkhing's Cake'
 
 <br>
 
+**v1.1.0**
+- แก้มีรายละเอียดดังนี้:
+    1. ทำหน้า optionPage ทำ normal mode/random mode ด้วย ใช้ State เดิมแต่แยก Logic ด้วย Flag ใส่รับค่าเลือก mode ไหน ไปหน้าไหน normal ข้าม random, จับเวลา, นับคะแนน
+    2. เปลี่ยนไฟล์ state โค้ดเยอะ แยก class เป็นแต่ละไฟล์ไปเลย
+    3. แก้ปัญหา mouse over ละกดเลือกเอง เป็น mouse button down
+    4. แก้ไขคลาส SaveImgButton เปลี่ยนชื่อไฟล์เป็น pattern dateTime เซฟรูปภาพในโฟลเดอร์ Downloads/RealorCakeGallery ถ้าไม่มีก็สร้างโฟลเดอร์ขึ้นมาให้เอง เพื่อการแสดงผลหน้า gallery
+    5. ทำหน้า galleryPage ใช้ dateTime sort เรียงจากใหม่ไปเก่า ใช้ปุ่มเปลี่ยนหน้าซ้ายขวา แสดงแบบ 2x3 กดรูปเพื่อดูได้ 
+    6. เปลี่ยนการเซฟรูปใหม่เพื่อแสดงผลขนาดเท่ากัน จัด content layer เพื่อเซฟเฉพาะหน้าเกมทั้งหน้าไม่รวมปุ่ม กระทบหน้า message ต้องจัดแบ่งส่วนวาด content layer แล้วกล่องข้อความบังเค้ก แก้ไขให้พื้นข้อความโปร่งใส + กรอบข้อความโปร่งใส
+    7. แก้ไขการแสดงส่วน message ให้มี cursor รู้ว่าพิมพ์ถึงไหนแล้ว เจอปัญหาการพิมเบิ้ล กดแช่เพื่อลบไม่ได้ แก้ให้เป็นปกติแล้ว 
+
+<br>
+
+**v2.0.0**
+- แก้มีรายละเอียดดังนี้:
+    1. ทำ balingPage มี 4 step 
+        - 0 Ingredients เลือกวัตถุดิบ drag and drop ลงชาร์ม
+        - 1 mix it กด blender animation รวมส้วนผสม
+        - 2 cutting drag and drop knife animation ตัด
+        - 3 frosting กด piping bag เลือกไส้เค้ก filling
+    2. แก้ปัญหาเพิ่มการนับคะแนนส่วนของ filling
+    3. ใส่ sound
+    4. แก้ปัญหาปุ่มกดต่าง ๆ เปลี่ยนหน้า next back wish/remove กดไปกลับไม่ได้ กดเลยหน้า กดช้า ปุ่ม object ตกขอบ
+    
+<br>
+
 <hr>
 
 **How to pyinstaller**
@@ -29,3 +54,18 @@ A repository of a cake decoration game called 'Namkhing's Cake'
 1. เข้าใน directory ที่มี main.py
 2. พิมพ์คำสั่ง pyinstaller --onefile --noconsole --add-data "assets:assets" --exclude Screenshots --name "NamkhingsCake-1.0.1" main.py
 3. จะมี directory ชื่อ dist ที่มีไฟล์ .exe หรือไม่ก็ .app (for macOS) ขึ้นมา ให้ zip dist แล้วอัพโหลดลงไดร์ฟได้เลย
+
+cd D:\RealOrCake\RealorCake
+python -m PyInstaller `
+  --onefile `
+  --windowed `
+  --name NamkhingCake-1.1.0 `
+  --add-data "assets;assets" `
+  --add-data "states;states" `
+  main.py
+
+git status
+git branch
+git add .
+git commit -m ""
+git push -u origin v2.0.0
