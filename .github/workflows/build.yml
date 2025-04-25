@@ -1,3 +1,4 @@
+# File: RealOrCake/.github/workflows/build.yml
 name: Build Release
 
 on:
@@ -15,6 +16,7 @@ jobs:
       matrix:
         os: [windows-latest, macos-latest]
 
+    # ให้ทุกคำสั่ง run รันจากโฟลเดอร์ RealOrCake (ที่มี main.py)
     defaults:
       run:
         working-directory: RealOrCake
@@ -31,33 +33,32 @@ jobs:
       - name: Install PyInstaller
         run: pip install pyinstaller
 
-      - name: Build executable
+      - name: Build Windows executable
+        if: matrix.os == 'windows-latest'
         run: |
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            pyinstaller --onefile --windowed \
-              --add-data "assets;assets" \
-              --add-data "states;states" \
-              --add-data "decoModule.py;decoModule.py" \
-              main.py
-          else
-            pyinstaller --onefile \
-              --add-data "assets:assets" \
-              --add-data "states:states" \
-              --add-data "decoModule.py:decoModule.py" \
-              main.py
-          fi
+          pyinstaller --onefile --windowed \
+            --add-data "assets;assets" \
+            --add-data "states;states" \
+            --add-data "decoModule.py;decoModule.py" \
+            main.py
+
+      - name: Build macOS executable
+        if: matrix.os == 'macos-latest'
+        run: |
+          pyinstaller --onefile \
+            --add-data "assets:assets" \
+            --add-data "states:states" \
+            --add-data "decoModule.py:decoModule.py" \
+            main.py
 
       - name: List dist folder
         run: |
-          echo ">>> Contents of dist"
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            dir dist
-          else
-            ls dist
-          fi
+          echo ">>> Contents of dist:"
+          # 'ls' ใช้ได้ทั้งใน Bash (macOS) และ PowerShell (Windows Runner)
+          ls dist
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: NamkhingCake-${{ matrix.os }}
-          path: dist/**
+          path: RealOrCake/dist/**
