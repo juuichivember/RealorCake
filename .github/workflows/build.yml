@@ -2,7 +2,7 @@ name: Build Release
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch: {}
 
 jobs:
@@ -13,6 +13,10 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, macos-latest]
+
+    defaults:
+      run:
+        working-directory: RealOrCake
 
     steps:
       - name: Checkout code
@@ -28,9 +32,6 @@ jobs:
 
       - name: Build executable
         run: |
-          # เข้าไปยังโฟลเดอร์ที่มี main.py
-          cd RealOrCake
-          # ถ้าเป็น Windows ให้เพิ่ม --windowed
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
             pyinstaller --onefile --windowed \
               --add-data "assets;assets" \
@@ -47,15 +48,15 @@ jobs:
 
       - name: List dist folder
         run: |
-          echo ">>> Contents of RealOrCake/dist"
+          echo ">>> Contents of dist"
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            dir RealOrCake\dist
+            dir dist
           else
-            ls RealOrCake/dist
+            ls dist
           fi
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: NamkhingCake-${{ matrix.os }}
-          path: RealOrCake/dist/**
+          path: dist/**
