@@ -2,7 +2,7 @@ name: Build Release
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   workflow_dispatch: {}
 
 jobs:
@@ -11,6 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest, macos-latest]
 
@@ -36,13 +37,13 @@ jobs:
             pyinstaller --onefile --windowed \
               --add-data "assets;assets" \
               --add-data "states;states" \
-              --add-data "decoModule;decoModule" \
+              --add-data "decoModule.py;decoModule.py" \
               main.py
           else
             pyinstaller --onefile \
               --add-data "assets:assets" \
               --add-data "states:states" \
-              --add-data "decoModule:decoModule" \
+              --add-data "decoModule.py:decoModule.py" \
               main.py
           fi
 
