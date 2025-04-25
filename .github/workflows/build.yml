@@ -2,12 +2,18 @@ name: Build NamkhingCake
 
 on:
   push:
-    tags:
-      - 'v*.*.*'
+    branches:
+      - main
+  workflow_dispatch: {}
 
 jobs:
   build-windows:
     runs-on: windows-latest
+
+    defaults:
+      run:
+        working-directory: RealOrCake
+
     steps:
       - uses: actions/checkout@v3
 
@@ -31,6 +37,11 @@ jobs:
 
   build-macos:
     runs-on: macos-latest
+
+    defaults:
+      run:
+        working-directory: RealOrCake
+
     steps:
       - uses: actions/checkout@v3
 
