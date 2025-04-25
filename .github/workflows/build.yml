@@ -2,8 +2,7 @@ name: Build NamkhingCake
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch: {}
 
 jobs:
@@ -16,18 +15,18 @@ jobs:
         working-directory: RealOrCake
 
     steps:
-      - name: Checkout code
+      - name: "Checkout code"
         uses: actions/checkout@v3
 
-      - name: Setup Python
+      - name: "Setup Python"
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: Install PyInstaller
+      - name: "Install PyInstaller"
         run: pip install pyinstaller
 
-      - name: Build Windows executable
+      - name: "Build Windows executable"
         run: |
           pyinstaller --onefile --windowed \
             --add-data "assets;assets" \
@@ -35,11 +34,14 @@ jobs:
             --add-data "decoModule;decoModule" \
             main.py
 
-      - name: Upload Windows artifact
+      - name: "Debug: List dist folder"
+        run: dir dist
+
+      - name: "Upload Windows artifact"
         uses: actions/upload-artifact@v3
         with:
           name: NamkhingCake-Windows
-          path: RealOrCake/dist/main.exe
+          path: dist/**/*
 
   build-macos:
     name: Build macOS binary
@@ -50,18 +52,18 @@ jobs:
         working-directory: RealOrCake
 
     steps:
-      - name: Checkout code
+      - name: "Checkout code"
         uses: actions/checkout@v3
 
-      - name: Setup Python
+      - name: "Setup Python"
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: Install PyInstaller
+      - name: "Install PyInstaller"
         run: pip install pyinstaller
 
-      - name: Build macOS binary
+      - name: "Build macOS binary"
         run: |
           pyinstaller --onefile \
             --add-data "assets:assets" \
@@ -69,8 +71,11 @@ jobs:
             --add-data "decoModule:decoModule" \
             main.py
 
-      - name: Upload macOS artifact
+      - name: "Debug: List dist folder"
+        run: ls dist
+
+      - name: "Upload macOS artifact"
         uses: actions/upload-artifact@v3
         with:
           name: NamkhingCake-macOS
-          path: RealOrCake/dist/main
+          path: dist/**/*
