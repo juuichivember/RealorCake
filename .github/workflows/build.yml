@@ -1,5 +1,4 @@
-# File: RealOrCake/.github/workflows/build.yml
-name: Build Release
+name: Build macOS Release
 
 on:
   push:
@@ -7,16 +6,10 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  build:
-    name: Build on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+  build-macos:
+    runs-on: macos-latest
 
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-latest, macos-latest]
-
-    # ให้ทุกคำสั่ง run รันจากโฟลเดอร์ RealOrCake (ที่มี main.py)
+    # ทุกคำสั่ง run จะรันในโฟลเดอร์ RealOrCake
     defaults:
       run:
         working-directory: RealOrCake
@@ -25,7 +18,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup Python
+      - name: Setup Python 3.10
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
@@ -33,17 +26,7 @@ jobs:
       - name: Install PyInstaller
         run: pip install pyinstaller
 
-      - name: Build Windows executable
-        if: matrix.os == 'windows-latest'
-        run: |
-          pyinstaller --onefile --windowed \
-            --add-data "assets;assets" \
-            --add-data "states;states" \
-            --add-data "decoModule.py;decoModule.py" \
-            main.py
-
       - name: Build macOS executable
-        if: matrix.os == 'macos-latest'
         run: |
           pyinstaller --onefile \
             --add-data "assets:assets" \
@@ -53,12 +36,11 @@ jobs:
 
       - name: List dist folder
         run: |
-          echo ">>> Contents of dist:"
-          # 'ls' ใช้ได้ทั้งใน Bash (macOS) และ PowerShell (Windows Runner)
+          echo ">>> dist contents:"
           ls dist
 
-      - name: Upload artifact
+      - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
         with:
-          name: NamkhingCake-${{ matrix.os }}
-          path: RealOrCake/dist/**
+          name: NamkhingCake-macos
+          path: dist/**
