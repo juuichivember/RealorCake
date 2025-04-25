@@ -35,7 +35,7 @@ jobs:
         run: dir RealOrCake\dist
 
       - name: Upload Windows artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
           name: NamkhingCake-Windows
           path: RealOrCake/dist/**
@@ -69,7 +69,7 @@ jobs:
         run: ls RealOrCake/dist
 
       - name: Upload macOS artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
           name: NamkhingCake-macOS
-          path: RealOrCake/dist/** 
+          path: RealOrCake/dist/**
