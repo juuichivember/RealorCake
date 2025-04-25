@@ -1,0 +1,43 @@
+name: Build macOS Release
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install pyinstaller
+
+      - name: Build macOS executable
+        run: |
+          cd RealOrCake
+          pyinstaller --onefile \
+            --add-data "assets:assets" \
+            --add-data "states:states" \
+            --add-data "decoModule.py:decoModule.py" \
+            main.py
+
+      - name: List dist folder
+        run: |
+          cd RealOrCake
+          echo ">>> Contents of dist/"
+          ls dist
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NamkhingCake-macos
+          path: RealOrCake/dist/**
