@@ -23,6 +23,7 @@ A repository of a cake decoration game called 'Namkhing's Cake'
 <br>
 
 **v1.1.0**
+- link for download game without the source code https://tuipied.sharepoint.com/:u:/s/RealorCake/EdGnzq2zLGZOiWraNi1cEE8B_W4laMWRICtS1yo3QRNovg?e=avlN85
 - แก้มีรายละเอียดดังนี้:
     1. ทำหน้า optionPage ทำ normal mode/random mode ด้วย ใช้ State เดิมแต่แยก Logic ด้วย Flag ใส่รับค่าเลือก mode ไหน ไปหน้าไหน normal ข้าม random, จับเวลา, นับคะแนน
     2. เปลี่ยนไฟล์ state โค้ดเยอะ แยก class เป็นแต่ละไฟล์ไปเลย
@@ -35,6 +36,7 @@ A repository of a cake decoration game called 'Namkhing's Cake'
 <br>
 
 **v2.0.0**
+- link for download game without the source code https://tuipied.sharepoint.com/:f:/s/RealorCake/Ei6jYoPxj0lIn9w-F7yPELgBTwx4SsuOWnzROYtgBzLN8Q?e=Up9nzt
 - แก้มีรายละเอียดดังนี้:
     1. ทำ balingPage มี 4 step 
         - 0 Ingredients เลือกวัตถุดิบ drag and drop ลงชาร์ม
