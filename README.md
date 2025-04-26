@@ -55,14 +55,20 @@ A repository of a cake decoration game called 'Namkhing's Cake'
 2. พิมพ์คำสั่ง pyinstaller --onefile --noconsole --add-data "assets:assets" --exclude Screenshots --name "NamkhingsCake-1.0.1" main.py
 3. จะมี directory ชื่อ dist ที่มีไฟล์ .exe หรือไม่ก็ .app (for macOS) ขึ้นมา ให้ zip dist แล้วอัพโหลดลงไดร์ฟได้เลย
 
+
+Build for window
 cd D:\RealOrCake\RealorCake
 python -m PyInstaller `
   --onefile `
   --windowed `
-  --name NamkhingCake-1.1.0 `
+  --name NamkhingCake-2.0.0 `
   --add-data "assets;assets" `
   --add-data "states;states" `
   main.py
+
+Build for MacOS
+    - github -> action -> run Add macOS-only CI build
+    https://github.com/juuichivember/RealorCake/actions 
 
 git status
 git branch
