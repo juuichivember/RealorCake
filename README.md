@@ -1,6 +1,15 @@
 # RealorCake
 A repository of a cake decoration game called 'Namkhing's Cake'
+<br>
 
+<hr>
+
+**How to play the game:**
+Choose your the version you want to play from the section below and download the installer. It might take some time to open the game.
+
+<hr>
+
+<h3>Semantic Version</h3>
 
 **v1.0.0**
 - deploy by pyinstaller, you can download dist to play the game without downloading the source code: https://tuipied.sharepoint.com/:u:/s/RealorCake/EWhcXWpK8QRCmw5VWEAqtRQBtowLSEwgm-9m9ZIpbb8Dbg?e=jjtoyu (อัพลง github ไม่ได้เพราะเกิน 25MB)
@@ -38,7 +47,7 @@ A repository of a cake decoration game called 'Namkhing's Cake'
 **v2.0.0**
 - link for download game without the source code https://tuipied.sharepoint.com/:f:/s/RealorCake/Ei6jYoPxj0lIn9w-F7yPELgBTwx4SsuOWnzROYtgBzLN8Q?e=Up9nzt
 - แก้มีรายละเอียดดังนี้:
-    1. ทำ balingPage มี 4 step 
+    1. ทำ bakingPage มี 4 step 
         - 0 Ingredients เลือกวัตถุดิบ drag and drop ลงชาร์ม
         - 1 mix it กด blender animation รวมส้วนผสม
         - 2 cutting drag and drop knife animation ตัด
