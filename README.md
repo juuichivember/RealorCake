@@ -5,7 +5,9 @@ A repository of a cake decoration game called 'Namkhing's Cake'
 <hr>
 
 **How to play the game:**
-Choose your the version you want to play from the section below and download the installer. It might take some time to open the game.
+Choose your the version you want to play from the section below and download the installer. It might take some time to open the game.<br>
+
+When you unzip the installer file, there are two files: .app and .exe. If you use MacOS, open the .app one. If you use Windows, open the .exe one
 
 <hr>
 
@@ -32,7 +34,7 @@ Choose your the version you want to play from the section below and download the
 <br>
 
 **v1.1.0**
-- link for download game without the source code https://tuipied.sharepoint.com/:u:/s/RealorCake/EdGnzq2zLGZOiWraNi1cEE8B_W4laMWRICtS1yo3QRNovg?e=avlN85
+- link for download game without the source code https://tuipied.sharepoint.com/:f:/s/RealorCake/Egz2hAwXXo1Dju-O2nKZXgYBq8Pk7op1vrAywOtAPh9WBQ?e=GbG3YM
 - แก้มีรายละเอียดดังนี้:
     1. ทำหน้า optionPage ทำ normal mode/random mode ด้วย ใช้ State เดิมแต่แยก Logic ด้วย Flag ใส่รับค่าเลือก mode ไหน ไปหน้าไหน normal ข้าม random, จับเวลา, นับคะแนน
     2. เปลี่ยนไฟล์ state โค้ดเยอะ แยก class เป็นแต่ละไฟล์ไปเลย
