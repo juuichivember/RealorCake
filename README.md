@@ -5,7 +5,7 @@ A repository of a cake decoration game called 'Namkhing's Cake'
 <hr>
 
 **How to play the game:**
-Choose the version you want to play from the section below and download the installer or in this <a href=https://drive.google.com/drive/folders/1NdPoZGKVpz6GYzkjQpm-4d6gmGvYwwA8?usp=sharing>link</a>. It might took 1-2 minutes to open the game.<br>
+Choose the version you want to play from the section below and download the installer or in this <a href="https://drive.google.com/drive/folders/1NdPoZGKVpz6GYzkjQpm-4d6gmGvYwwA8?usp=sharing">link</a>. It might took 1-2 minutes to open the game.<br>
 
 When you unzip the installer file, there are two files: .app and .exe. If you use MacOS, open the .app one. If you use Windows, open the .exe one.
 
