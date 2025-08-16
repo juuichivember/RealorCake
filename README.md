@@ -1,5 +1,7 @@
 # RealorCake
 A repository of a cake decoration game called 'Namkhing's Cake'
+
+Presentation Slide: <a href="https://www.canva.com/design/DAGlc3qSj4Q/MG2vDqSNvTP240FX_1Ta7A/edit?utm_content=DAGlc3qSj4Q&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton">v2.0.0</a> and <a href="https://www.canva.com/design/DAGg4-83Y5A/qTW4N34yVrjbvpYIdObMqg/edit?utm_content=DAGg4-83Y5A&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton">v1.0.0</a>
 <br>
 
 <hr>
